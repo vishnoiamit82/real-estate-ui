@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, Edit2, Trash, RotateCcw, NotebookText, Mail } from 'lucide-react'; // Icons
 import NotesModal from "./NotesModal"; // Import the NotesModal component
 import EmailModal from './EmailModal';
+import EmailReplies from './EmailReplies';
 
 
 const PropertyList = () => {
@@ -559,6 +560,7 @@ const PropertyList = () => {
                         <h3 className="text-xl font-bold">
                             Conversations for {selectedProperty.address}
                         </h3>
+                        <EmailReplies agentEmail={selectedAgent?.email} />
                         <div className="overflow-y-auto h-64">
                             {conversations.length > 0 ? (
                                 conversations.map((conv, idx) => (

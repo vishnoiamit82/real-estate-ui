@@ -14,6 +14,7 @@ import ClientBriefMatches from './components/ClientBriefMatches';
 import BuyersAgentDashboard from './components/BuyersAgentDashboard';
 import CashFlowCalculator from './components/CashFlowCalculator';
 import EmailTemplateManagement from './components/EmailTemplateManagement';
+import EmailReplies from './components/EmailReplies';
 
 function App() {
     return (
@@ -40,6 +41,7 @@ function App() {
                         <Route path="/dashboard" element={<BuyersAgentDashboard />} />
                         <Route path="/cashflow-calculator" element={<CashFlowCalculator />} />
                         <Route path="/template-management" element={<EmailTemplateManagement />} />
+                        <Route path="/email-replies" element={<EmailReplies />} />
                         
 
                     </Routes>
