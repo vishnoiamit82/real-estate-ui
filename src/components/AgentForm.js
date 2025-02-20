@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 
 const AgentForm = () => {
     const { id } = useParams(); // Get agent ID from URL for edit
@@ -19,7 +19,7 @@ const AgentForm = () => {
         if (id) {
             const fetchAgent = async () => {
                 try {
-                    const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/agents/${id}`);
+                    const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/agents/${id}`);
                     setFormData(response.data); // Populate form with agent details
                 } catch (error) {
                     console.error('Error fetching agent details:', error);
@@ -41,11 +41,11 @@ const AgentForm = () => {
         try {
             if (id) {
                 // Update existing agent
-                await axios.put(`${process.env.REACT_APP_API_BASE_URL}/agents/${id}`, formData);
+                await axiosInstance.put(`${process.env.REACT_APP_API_BASE_URL}/agents/${id}`, formData);
                 setMessage('Agent updated successfully!');
             } else {
                 // Create new agent
-                await axios.post(`${process.env.REACT_APP_API_BASE_URL}/agents`, formData);
+                await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/agents`, formData);
                 setMessage('Agent created successfully!');
             }
             setTimeout(() => navigate('/agents'), 1500); // Redirect to agent list

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 
 const EmailModal = ({ property, agent, templates, onClose }) => {
     const [selectedTemplate, setSelectedTemplate] = useState('');
@@ -28,7 +28,7 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
         setIsSending(true);
         try {
             const messageContent = messageRef.current.innerHTML; // Get the HTML content
-            await axios.post(`${process.env.REACT_APP_API_BASE_URL}/send-email`, {
+            await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/send-email`, {
                 to: agent.email,
                 propertyAddress: property.address,
                 clientName: agent.name,

@@ -1,4 +1,5 @@
-import React from 'react';
+// App.js
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -15,39 +16,81 @@ import BuyersAgentDashboard from './components/BuyersAgentDashboard';
 import CashFlowCalculator from './components/CashFlowCalculator';
 import EmailTemplateManagement from './components/EmailTemplateManagement';
 import EmailReplies from './components/EmailReplies';
+import SignupForm from './components/SignupForm';
+import UserManagement from './components/UserManagement';
+import LoginForm from './components/Loginform';
+import ProtectedRoute from './components/ProtectedRoute';
+import {jwtDecode} from 'jwt-decode';
 
 function App() {
+
+    const [currentUser, setCurrentUser] = useState(null);
+
+    
+    useEffect(() => {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            try {
+                const decodedUser = jwtDecode(token);
+                console.log('Decoded User on App Load:', decodedUser);
+
+                // Check if the token is expired
+                if (decodedUser.exp * 1000 < Date.now()) {
+                    console.warn('Token expired. Redirecting to login...');
+                    handleLogout();
+                } else {
+                    setCurrentUser(decodedUser);
+                }
+            } catch (error) {
+                console.error('Invalid token. Logging out...', error);
+                handleLogout();
+            }
+        }
+    }, []);
+
+
+    // Handle user logout
+    const handleLogout = () => {
+        setCurrentUser(null);
+        localStorage.removeItem('authToken');
+        window.location.href = '/login';
+    };
+
     return (
         <Router>
             <div className="flex flex-col min-h-screen">
-                {/* Header */}
-                <Header />
-
-                {/* Main Content */}
+                <Header currentUser={currentUser} onLogout={handleLogout} />
                 <main className="flex-grow">
                     <Routes>
-                        <Route path="/" element={<PropertyList />} />
-                        <Route path="/add-property" element={<PropertyForm />} />
-                        <Route path="/properties/:id" element={<PropertyDetail />} />
-                        <Route path="/edit-property/:id" element={<PropertyEdit />} />
-                        <Route path="/agents" element={<AgentList />} />
-                        <Route path="/agents/:id" element={<AgentForm/>} />
-                        <Route path="/add-agent" element={<AgentForm />} />
-                        <Route path="/edit-agent/:id" element={<AgentForm />} />
-                        <Route path="/client-briefs" element={<ClientBriefDashboard />} />
-                        <Route path="/client-briefs/add" element={<ClientBriefForm />} />
-                        <Route path="/client-briefs/edit/:id" element={<ClientBriefForm />} />
-                        <Route path="/client-briefs/:briefId/matches" element={<ClientBriefMatches />} />
-                        <Route path="/dashboard" element={<BuyersAgentDashboard />} />
-                        <Route path="/cashflow-calculator" element={<CashFlowCalculator />} />
-                        <Route path="/template-management" element={<EmailTemplateManagement />} />
-                        <Route path="/email-replies" element={<EmailReplies />} />
+                        {/* Public Routes */}
+                        <Route path="/login" element={<LoginForm setCurrentUser={setCurrentUser} />} />
+                        <Route path="/signup" element={<SignupForm />} />
                         
+                        {/* Protected Routes for Authenticated Users */}
+                        <Route path="/" element={<ProtectedRoute><PropertyList /></ProtectedRoute>} />
+                        <Route path="/add-property" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
+                        <Route path="/properties/:id" element={<ProtectedRoute><PropertyDetail /></ProtectedRoute>} />
+                        <Route path="/edit-property/:id" element={<ProtectedRoute><PropertyEdit /></ProtectedRoute>} />
+                        <Route path="/agents" element={<ProtectedRoute><AgentList /></ProtectedRoute>} />
+                        <Route path="/add-agent" element={<ProtectedRoute><AgentForm /></ProtectedRoute>} />
+                        <Route path="/edit-agent/:id" element={<ProtectedRoute><AgentForm /></ProtectedRoute>} />
+                        <Route path="/client-briefs" element={<ProtectedRoute><ClientBriefDashboard /></ProtectedRoute>} />
+                        <Route path="/client-briefs/add" element={<ProtectedRoute><ClientBriefForm /></ProtectedRoute>} />
+                        <Route path="/client-briefs/edit/:id" element={<ProtectedRoute><ClientBriefForm /></ProtectedRoute>} />
+                        <Route path="/client-briefs/:briefId/matches" element={<ProtectedRoute><ClientBriefMatches /></ProtectedRoute>} />
+                        <Route path="/dashboard" element={<ProtectedRoute><BuyersAgentDashboard /></ProtectedRoute>} />
+                        <Route path="/cashflow-calculator" element={<ProtectedRoute><CashFlowCalculator /></ProtectedRoute>} />
+                        <Route path="/template-management" element={<ProtectedRoute><EmailTemplateManagement /></ProtectedRoute>} />
+                        <Route path="/email-replies" element={<ProtectedRoute><EmailReplies /></ProtectedRoute>} />
 
+                        {/* Admin-Only Protected Route */}
+                        <Route path="/user-management" element={
+                            <ProtectedRoute requiredRole="admin">
+                                <UserManagement />
+                            </ProtectedRoute>
+                        } />
                     </Routes>
                 </main>
-
-                {/* Footer */}
                 <Footer />
             </div>
         </Router>

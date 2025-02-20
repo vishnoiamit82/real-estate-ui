@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 
 // Use the environmentalized base URL
 const API = axios.create({

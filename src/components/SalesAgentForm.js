@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 
 const SalesAgentForm = () => {
     const [formData, setFormData] = useState({
@@ -21,7 +21,7 @@ const SalesAgentForm = () => {
         e.preventDefault();
         try {
             // Post the form data to the backend
-            const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/agents`, formData);
+            const response = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/agents`, formData);
             setMessage('Sales agent added successfully!');
             console.log(response.data);
             setFormData({
@@ -73,7 +73,7 @@ const SalesAgentForm = () => {
                         onChange={handleChange}
                         className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                         placeholder="Enter email"
-                        
+
                     />
                 </div>
                 <div>
@@ -85,7 +85,7 @@ const SalesAgentForm = () => {
                         onChange={handleChange}
                         className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                         placeholder="Enter phone number"
-                        
+
                     />
                 </div>
                 <button

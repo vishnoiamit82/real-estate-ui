@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 import { useNavigate } from 'react-router-dom';
 import { Eye, Edit2, Trash, RotateCcw, NotebookText } from 'lucide-react'; // Icons
 
@@ -10,7 +10,7 @@ const ClientBriefDashboard = ({ buyerAgentId }) => {
     useEffect(() => {
         const fetchClientBriefs = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/client-briefs`, {
+                const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/client-briefs`, {
                     params: { buyerAgentId: buyerAgentId || '65b0f5c3e3a4c256d4f8a2b7' },
                 });
                 setClientBriefs(response.data);
@@ -24,7 +24,7 @@ const ClientBriefDashboard = ({ buyerAgentId }) => {
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this client brief?')) return;
         try {
-            await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/client-briefs/${id}`);
+            await axiosInstance.delete(`${process.env.REACT_APP_API_BASE_URL}/client-briefs/${id}`);
             setClientBriefs(clientBriefs.filter((brief) => brief._id !== id));
         } catch (error) {
             console.error('Error deleting client brief:', error);

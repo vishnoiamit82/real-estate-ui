@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 import { useParams } from 'react-router-dom';
 
 const ClientBriefMatches = () => {
@@ -16,7 +16,7 @@ const ClientBriefMatches = () => {
 
         const fetchMatches = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/client-briefs/${briefId}/matches`);
+                const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/client-briefs/${briefId}/matches`);
                 setMatches(response.data);
                 setLoading(false);
             } catch (error) {

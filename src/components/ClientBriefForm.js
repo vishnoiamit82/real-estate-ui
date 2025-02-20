@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -31,7 +31,7 @@ const ClientBriefForm = ({ buyerAgentId }) => {
         if (id) {
             const fetchClientBrief = async () => {
                 try {
-                    const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/client-briefs/${id}`);
+                    const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/client-briefs/${id}`);
                     setFormData({
                         clientName: response.data.clientName || '',
                         budgetMin: response.data.budget?.min || '',
@@ -56,7 +56,7 @@ const ClientBriefForm = ({ buyerAgentId }) => {
             fetchClientBrief();
         }
     }, [id]);
-    
+
 
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
@@ -84,24 +84,24 @@ const ClientBriefForm = ({ buyerAgentId }) => {
                 investmentStrategy: formData.investmentStrategy,
                 interestRate: formData.interestRate ? parseFloat(formData.interestRate) : undefined,
             };
-    
+
             if (id) {
                 // If editing, send a PUT request to update the existing brief
-                await axios.put(`${process.env.REACT_APP_API_BASE_URL}/client-briefs/${id}`, payload);
+                await axiosInstance.put(`${process.env.REACT_APP_API_BASE_URL}/client-briefs/${id}`, payload);
                 setMessage('Client Brief updated successfully!');
             } else {
                 // If creating a new client brief, send a POST request
-                await axios.post(`${process.env.REACT_APP_API_BASE_URL}/client-briefs`, payload);
+                await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/client-briefs`, payload);
                 setMessage('Client Brief saved successfully!');
             }
-    
+
             setTimeout(() => navigate('/client-briefs'), 1500);
         } catch (error) {
             console.error('Error saving client brief:', error);
             setMessage('Failed to save client brief. Please try again.');
         }
     };
-    
+
 
     return (
         <div className="container mx-auto p-6 max-w-2xl bg-white shadow-md rounded-lg">
@@ -156,7 +156,7 @@ const ClientBriefForm = ({ buyerAgentId }) => {
                 <fieldset className="border p-4 rounded-md">
                     <legend className="font-semibold">Client Information</legend>
                     <div className="grid grid-cols-2 gap-4">
-            
+
                         <div>
                             <label className="block font-medium">Contract Purchaser:</label>
                             <input type="text" value={formData.contractPurchaser} onChange={(e) => setFormData({ ...formData, contractPurchaser: e.target.value })} className="w-full p-3 border rounded-md" />

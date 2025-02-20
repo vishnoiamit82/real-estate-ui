@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 
 const PropertyEdit = () => {
     const { id } = useParams();
@@ -33,7 +33,7 @@ const PropertyEdit = () => {
     useEffect(() => {
         const fetchProperty = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`);
+                const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`);
                 const propertyData = response.data;
                 setFormData(propertyData);
 
@@ -42,7 +42,7 @@ const PropertyEdit = () => {
                 }
 
                 if (response.data.agentId) {
-                    const agent = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/agents/${response.data.agentId._id}`);
+                    const agent = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/agents/${response.data.agentId._id}`);
                     setSearchAgent(agent.data.name);
                 }
             } catch (error) {
@@ -53,7 +53,7 @@ const PropertyEdit = () => {
 
         const fetchAgents = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/agents`);
+                const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/agents`);
                 setAgents(response.data);
                 setFilteredAgents(response.data);
             } catch (error) {
@@ -104,7 +104,7 @@ const PropertyEdit = () => {
 
         e.preventDefault();
         try {
-            await axios.put(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`, formData);
+            await axiosInstance.put(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`, formData);
             setSuccessMessage('Property updated successfully!');
             navigate(`/properties/${id}`);
         } catch (error) {
@@ -170,7 +170,7 @@ const PropertyEdit = () => {
                                 value={formData.offerClosingDate}
                                 onChange={handleChange}
                                 className="w-full p-2 border border-gray-300 rounded-md"
-                                
+
                             />
                         </div>
                         <div>

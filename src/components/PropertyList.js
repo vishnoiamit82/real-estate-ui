@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 import Pagination from '@mui/material/Pagination';
 import { useNavigate } from 'react-router-dom';
 import { Eye, Edit2, Trash, RotateCcw, NotebookText, Mail } from 'lucide-react'; // Icons
@@ -27,12 +27,12 @@ const PropertyList = () => {
     const [selectedAgent, setSelectedAgent] = useState(null);
     const [emailTemplates, setEmailTemplates] = useState([]);
 
-    
+
 
     useEffect(() => {
         const fetchTemplates = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/email-templates`);
+                const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/email-templates`);
                 setEmailTemplates(response.data);
             } catch (error) {
                 console.error('Error fetching templates:', error);
@@ -40,7 +40,7 @@ const PropertyList = () => {
         };
         fetchTemplates();
     }, []);
-    
+
     const openEmailModal = (property, agent) => {
         setSelectedPropertyForEmail(property);
         setSelectedAgent(agent);
@@ -96,7 +96,7 @@ const PropertyList = () => {
     useEffect(() => {
         const fetchProperties = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/properties?include_deleted=${filter === "all"}`);
+                const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/properties?include_deleted=${filter === "all"}`);
                 setProperties(response.data);
             } catch (error) {
                 console.error('Error fetching properties:', error);
@@ -111,7 +111,7 @@ const PropertyList = () => {
         if (selectedProperty) {
             const fetchConversations = async () => {
                 try {
-                    const response = await axios.get(
+                    const response = await axiosInstance.get(
                         `${process.env.REACT_APP_API_BASE_URL}/properties/${selectedProperty._id}/conversations`
                     );
                     setConversations(response.data);
@@ -181,7 +181,7 @@ const PropertyList = () => {
     const deleteProperty = async (id) => {
         try {
             // Send a PATCH request for soft delete
-            await axios.patch(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}/delete`);
+            await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}/delete`);
 
             // Update local state to reflect the soft delete
             setProperties(properties.map((property) =>
@@ -199,7 +199,7 @@ const PropertyList = () => {
     const restoreProperty = async (id) => {
         try {
             // Call the restore endpoint
-            await axios.patch(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}/restore`);
+            await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}/restore`);
 
             // Update the property list to reflect the restored property
             setProperties(
@@ -217,7 +217,7 @@ const PropertyList = () => {
 
     const updateDecisionStatus = async (id, status) => {
         try {
-            const response = await axios.patch(
+            const response = await axiosInstance.patch(
                 `${process.env.REACT_APP_API_BASE_URL}/properties/${id}/decision`,
                 { decisionStatus: status }
             );

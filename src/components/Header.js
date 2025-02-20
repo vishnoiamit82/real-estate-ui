@@ -1,16 +1,26 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
-const Header = () => {
+const Header = ({ currentUser, onLogout }) => {
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        onLogout();
+        navigate('/login');
+    };
+
     return (
         <header className="bg-gray-800 text-white p-4">
             <nav className="container mx-auto flex justify-between">
                 <h1>
                     <NavLink
                         to="/"
-                        className="text-xl font-bold">Buyers Agents App
+                        className="text-xl font-bold"
+                    >
+                        Buyers Agents App
                     </NavLink>
                 </h1>
+
                 <ul className="flex space-x-4">
                     <li>
                         <NavLink
@@ -42,7 +52,6 @@ const Header = () => {
                             Dashboard
                         </NavLink>
                     </li>
-
                     <li>
                         <NavLink
                             to="/cashflow-calculator"
@@ -54,9 +63,57 @@ const Header = () => {
                         </NavLink>
                     </li>
 
-                    
-                </ul>
+                    {/* Show Signup link only if not logged in */}
+                    {!currentUser && (
+                        <li>
+                            <NavLink
+                                to="/signup"
+                                className={({ isActive }) =>
+                                    isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'
+                                }
+                            >
+                                Sign Up
+                            </NavLink>
+                        </li>
+                    )}
 
+                    {/* Show User Management link only to Admins */}
+                    {currentUser?.role === 'admin' && (
+                        <li>
+                            <NavLink
+                                to="/user-management"
+                                className={({ isActive }) =>
+                                    isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'
+                                }
+                            >
+                                User Management
+                            </NavLink>
+                        </li>
+                    )}
+
+                    {/* Conditional Login/Logout */}
+                    {!currentUser ? (
+                        <li>
+                            <NavLink
+                                to="/login"
+                                className={({ isActive }) =>
+                                    isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'
+                                }
+                            >
+                                Login
+                            </NavLink>
+                        </li>
+                    ) : (
+                        <li>
+                            <button
+                                onClick={handleLogout}
+                                className="hover:text-red-400"
+                            >
+                                Logout
+                            </button>
+                        </li>
+                    )}
+                </ul>
             </nav>
         </header>
     );

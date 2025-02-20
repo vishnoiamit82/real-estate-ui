@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from '../axiosInstance';
 
 const NotesModal = ({ property, onClose }) => {
     const [notes, setNotes] = useState([]);
@@ -14,7 +14,7 @@ const NotesModal = ({ property, onClose }) => {
 
     const fetchNotes = async () => {
         try {
-            const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/properties/${property._id}/notes`);
+            const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/properties/${property._id}/notes`);
             setNotes(response.data);
         } catch (error) {
             console.error("Error fetching notes:", error);
@@ -24,7 +24,7 @@ const NotesModal = ({ property, onClose }) => {
     const handleAddNote = async () => {
         if (!newNote.trim()) return;
         try {
-            await axios.post(`${process.env.REACT_APP_API_BASE_URL}/properties/${property._id}/notes`, {
+            await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/properties/${property._id}/notes`, {
                 content: newNote,
             });
             setNewNote("");

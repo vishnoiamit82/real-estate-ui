@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 
 const EmailReplies = ({ email }) => {
     const [replies, setReplies] = useState([]);
@@ -7,7 +7,7 @@ const EmailReplies = ({ email }) => {
     useEffect(() => {
         const fetchReplies = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/email-replies?to=${email}`);
+                const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/email-replies?to=${email}`);
                 setReplies(response.data);
             } catch (error) {
                 console.error("Error fetching email replies:", error);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 
 const CashFlowCalculator = () => {
     const [properties, setProperties] = useState([]);
@@ -23,8 +23,8 @@ const CashFlowCalculator = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const propertyRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/properties`);
-                const clientRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/client-briefs`);
+                const propertyRes = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/properties`);
+                const clientRes = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/client-briefs`);
                 setProperties(propertyRes.data);
                 setClients(clientRes.data);
             } catch (error) {
@@ -48,7 +48,7 @@ const CashFlowCalculator = () => {
             return;
         }
         try {
-            const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/cashflow/calculate`, {
+            const response = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/cashflow/calculate`, {
                 propertyId: selectedProperty._id,
                 clientId: selectedClient,
                 purchasePrice,
@@ -301,7 +301,7 @@ const CashFlowCalculator = () => {
                             </tr>
                         </thead>
                         <tbody>
-                        <tr>
+                            <tr>
                                 <td className="border border-gray-300 p-2">Weekly Cash Flow</td>
                                 <td className="border border-gray-300 p-2 text-gray-700">${(cashFlowResult.annualCashFlowInterestOnly / 52).toFixed(2)}</td>
                                 <td className="border border-gray-300 p-2 text-gray-700">${(cashFlowResult.annualCashFlowPI / 52).toFixed(2)}</td>

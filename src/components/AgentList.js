@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 import { useNavigate } from 'react-router-dom';
 import { Edit, Trash2, PlusCircle, RefreshCw, ArrowUpDown } from 'lucide-react'; // Importing icons
 
@@ -17,7 +17,7 @@ const AgentList = () => {
     useEffect(() => {
         const fetchAgents = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/agents`);
+                const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/agents`);
                 setAgents(response.data);
             } catch (error) {
                 console.error('Error fetching agents:', error);
@@ -33,7 +33,7 @@ const AgentList = () => {
     const deleteAgent = async (id) => {
         if (!window.confirm('Are you sure you want to delete this agent?')) return;
         try {
-            await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/agents/${id}`);
+            await axiosInstance.delete(`${process.env.REACT_APP_API_BASE_URL}/agents/${id}`);
             setAgents(agents.filter((agent) => agent._id !== id));
             setMessage({ text: 'Agent deleted successfully.', type: 'success' });
         } catch (error) {

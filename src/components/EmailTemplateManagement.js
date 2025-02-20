@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
@@ -12,8 +12,8 @@ const TemplateManagement = () => {
     const [editingTemplate, setEditingTemplate] = useState(null);
 
 
-       // Initialize Tiptap Editor
-       const editor = useEditor({
+    // Initialize Tiptap Editor
+    const editor = useEditor({
         extensions: [StarterKit],
         content: newTemplate.body,
         onUpdate: ({ editor }) => {
@@ -27,7 +27,7 @@ const TemplateManagement = () => {
 
     const fetchTemplates = async () => {
         try {
-            const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/email-templates`);
+            const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/email-templates`);
             setTemplates(response.data);
         } catch (error) {
             console.error('Error fetching templates:', error);
@@ -37,9 +37,9 @@ const TemplateManagement = () => {
     const handleCreateOrUpdate = async () => {
         try {
             if (editingTemplate) {
-                await axios.put(`${process.env.REACT_APP_API_BASE_URL}/email-templates/${editingTemplate._id}`, newTemplate);
+                await axiosInstance.put(`${process.env.REACT_APP_API_BASE_URL}/email-templates/${editingTemplate._id}`, newTemplate);
             } else {
-                await axios.post(`${process.env.REACT_APP_API_BASE_URL}/email-templates`, newTemplate);
+                await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/email-templates`, newTemplate);
             }
             setNewTemplate({ name: '', subject: '', body: '', type: 'custom' });
             setEditingTemplate(null);
@@ -56,7 +56,7 @@ const TemplateManagement = () => {
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/email-templates/${id}`);
+            await axiosInstance.delete(`${process.env.REACT_APP_API_BASE_URL}/email-templates/${id}`);
             fetchTemplates();
         } catch (error) {
             console.error('Error deleting template:', error);
@@ -68,28 +68,28 @@ const TemplateManagement = () => {
             <h2 className="text-2xl font-bold mb-4">Email Template Management</h2>
             <div className="bg-white p-4 shadow rounded-md">
                 <h3 className="text-xl mb-2">{editingTemplate ? 'Edit Template' : 'Create New Template'}</h3>
-                <input 
-                    type="text" 
-                    placeholder="Template Name" 
-                    value={newTemplate.name} 
-                    onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })} 
-                    className="w-full p-2 border rounded mb-2" 
+                <input
+                    type="text"
+                    placeholder="Template Name"
+                    value={newTemplate.name}
+                    onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+                    className="w-full p-2 border rounded mb-2"
                 />
-                <input 
-                    type="text" 
-                    placeholder="Subject" 
-                    value={newTemplate.subject} 
-                    onChange={(e) => setNewTemplate({ ...newTemplate, subject: e.target.value })} 
-                    className="w-full p-2 border rounded mb-2" 
+                <input
+                    type="text"
+                    placeholder="Subject"
+                    value={newTemplate.subject}
+                    onChange={(e) => setNewTemplate({ ...newTemplate, subject: e.target.value })}
+                    className="w-full p-2 border rounded mb-2"
                 />
                 {/* Tiptap Rich Text Editor */}
                 <div className="border p-2 rounded">
                     <EditorContent editor={editor} />
                 </div>
-                
-                <select 
-                    value={newTemplate.type} 
-                    onChange={(e) => setNewTemplate({ ...newTemplate, type: e.target.value })} 
+
+                <select
+                    value={newTemplate.type}
+                    onChange={(e) => setNewTemplate({ ...newTemplate, type: e.target.value })}
                     className="w-full p-2 border rounded mb-2"
                 >
                     <option value="inquiry">Inquiry</option>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 
 const PropertyDetail = () => {
     const { id } = useParams(); // Get the property ID from the URL
@@ -13,7 +13,7 @@ const PropertyDetail = () => {
     useEffect(() => {
         const fetchProperty = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`);
+                const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`);
                 setProperty(response.data);
             } catch (error) {
                 console.error('Error fetching property:', error);
@@ -28,7 +28,7 @@ const PropertyDetail = () => {
             return;
         }
         try {
-            await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`);
+            await axiosInstance.delete(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`);
             setMessage('Property deleted successfully.');
             navigate('/');
         } catch (error) {
@@ -39,7 +39,7 @@ const PropertyDetail = () => {
 
     const handleSendSMS = async () => {
         try {
-            await axios.post(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}/send-sms`, { message: smsMessage });
+            await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}/send-sms`, { message: smsMessage });
             setSmsStatus('SMS sent successfully!');
             setSmsMessage('');
         } catch (error) {

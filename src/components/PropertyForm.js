@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 
 const PropertyForm = () => {
     const [formData, setFormData] = useState({
@@ -32,7 +32,7 @@ const PropertyForm = () => {
         // Fetch agents
         const fetchAgents = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/agents`);
+                const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/agents`);
                 setAgents(response.data);
                 setFilteredAgents(response.data);
             } catch (error) {
@@ -71,7 +71,7 @@ const PropertyForm = () => {
         }
 
         try {
-            const response = await axios.post(
+            const response = await axiosInstance.post(
                 `${process.env.REACT_APP_API_BASE_URL}/process-description`,
                 { description },
                 { headers: { 'Content-Type': 'application/json' } }
@@ -141,7 +141,7 @@ const PropertyForm = () => {
         };
         console.log(formData)
         try {
-            await axios.post(`${process.env.REACT_APP_API_BASE_URL}/properties`, propertyData);
+            await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/properties`, propertyData);
             setSuccessMessage('Property created successfully!');
             setFormData({
                 address: '',
@@ -253,7 +253,7 @@ const PropertyForm = () => {
                                 const [name, phone, email] = formData.agentDetails.split(', ');
 
                                 try {
-                                    const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/agents`, {
+                                    const response = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/agents`, {
                                         name: name || 'Unknown Agent',
                                         phoneNumber: phone !== 'N/A' ? phone : '',
                                         email: email !== 'N/A' ? email : '',
