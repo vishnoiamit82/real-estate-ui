@@ -23,6 +23,7 @@ const LoginForm = ({ setCurrentUser }) => {
 
             // ✅ Set the current user in state
             setCurrentUser(response.data.user);
+            localStorage.setItem('currentUser', JSON.stringify(response.data.user));
 
             // ✅ Redirect based on role
             if (response.data.user.role === 'admin') {

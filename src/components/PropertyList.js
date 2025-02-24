@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axiosInstance from '../axiosInstance';
 import Pagination from '@mui/material/Pagination';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Edit2, Trash, RotateCcw, NotebookText, Mail } from 'lucide-react'; // Icons
+import { Eye, Edit2, Trash, RotateCcw, NotebookText, Mail,Share2 } from 'lucide-react'; // Icons
 import NotesModal from "./NotesModal"; // Import the NotesModal component
 import EmailModal from './EmailModal';
 import EmailReplies from './EmailReplies';
@@ -51,7 +51,40 @@ const PropertyList = () => {
         setSelectedAgent(null);
     };
 
-    const filteredProperties = properties
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+    const privacyFilteredProperties = properties.filter((property) => {
+        console.log("property.createdBy:", property.createdBy, typeof property.createdBy);
+        console.log("currentUser.id:", currentUser.id, typeof currentUser.id);
+
+        if (currentUser.role === 'admin') return true;
+        
+        // Allow if the listing is public
+        if (property.publicListing) return true;
+        // Allow if the current user created the property
+        if (property.createdBy.toString() === currentUser.id) return true;
+        // Allow if the property is shared with the current user (assuming sharedWith is an array of IDs)
+        if (property.sharedWith && property.sharedWith.includes(currentUser._id)) return true;
+        return false;
+    });
+
+    // Inside your PropertyList or PropertyDetail component:
+    const handleShareProperty = async (propertyId) => {
+        try {
+        const response = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/properties/${propertyId}/share`);
+        
+        const { shareLink } = response.data;
+        // Show the share link to the user, e.g., in a modal or toast
+        alert(`Share this link: ${shareLink}`);
+        } catch (error) {
+        console.error('Error sharing property:', error);
+        alert('Failed to generate share link.');
+        }
+    };
+    
+
+
+    const filteredProperties = privacyFilteredProperties
         .filter((property) => {
             // If filter is "all", include all properties (both deleted & non-deleted)
             if (filter === "all") return true;
@@ -403,17 +436,21 @@ const PropertyList = () => {
 
                                 {/* Address */}
                                 <td className="p-2">
-                                    {property.propertyLink ? (
-                                        <a
-                                            href={property.propertyLink}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-500 underline hover:text-blue-700"
-                                        >
-                                            {property.address || "N/A"}
-                                        </a>
+                                    {property.showAddress ? (
+                                        property.propertyLink ? (
+                                            <a
+                                                href={property.propertyLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-500 underline hover:text-blue-700"
+                                            >
+                                                {property.address || "N/A"}
+                                            </a>
+                                        ) : (
+                                            <span>{property.address || "N/A"}</span>
+                                        )
                                     ) : (
-                                        <span>{property.address || "N/A"}</span>
+                                        <span>Address Hidden</span>
                                     )}
                                 </td>
 
@@ -526,6 +563,10 @@ const PropertyList = () => {
                                         className="px-2 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
                                     >
                                         Hold
+                                    </button>
+
+                                    <button onClick={(e) => { e.stopPropagation(); handleShareProperty(property._id); }} className="px-2 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 flex items-center">
+                                        <Share2 size={16} className="mr-1" /> Share
                                     </button>
                                 </td>
 

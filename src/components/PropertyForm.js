@@ -16,6 +16,8 @@ const PropertyForm = () => {
         insurance: '',
         floodZone: '',
         bushfireZone: '',
+        publicListing: false,  // By default, not public
+        showAddress: true  // By default, not show address
     });
 
     const [description, setDescription] = useState(''); // For entering property description
@@ -69,20 +71,19 @@ const PropertyForm = () => {
             setMessage('Please enter a description to process.');
             return;
         }
-
+    
         try {
             const response = await axiosInstance.post(
                 `${process.env.REACT_APP_API_BASE_URL}/process-description`,
                 { description },
                 { headers: { 'Content-Type': 'application/json' } }
             );
-
+    
             const structuredData = response.data.structuredData;
-
-            console.log('Structured Data:', structuredData); // Log structured data to verify input
-            console.log('Agents List:', agents); // Log agent list to ensure it is populated
-
-
+    
+            console.log('Structured Data:', structuredData);
+            console.log('Agents List:', agents);
+    
             // Match the agentName from structuredData with the agents list
             const matchedAgents = agents.filter((agent) => {
                 if (!agent.name || !structuredData.agentName) {
@@ -91,40 +92,47 @@ const PropertyForm = () => {
                 }
                 return agent.name.toLowerCase().includes(structuredData.agentName.toLowerCase());
             });
-
-            console.log('Matched Agents:', matchedAgents); // Log matched agents, if any
-
+    
+            console.log('Matched Agents:', matchedAgents);
+    
             if (matchedAgents.length === 1) {
-                // ✅ If only one match, set it automatically
+                // ✅ One match: auto-populate all fields and assign the agent automatically
                 setFormData({
                     ...formData,
-                    ...structuredData, // Auto-populate form fields
-                    agentId: matchedAgents[0]._id, // Set agentId
+                    ...structuredData, // Auto-populate property fields
+                    agentId: matchedAgents[0]._id,
                     agentDetails: `${matchedAgents[0].name}, ${matchedAgents[0].phoneNumber || 'N/A'}, ${matchedAgents[0].email || 'N/A'}`,
                 });
-                setMessage('Description processed successfully! Agent assigned automatically. Please review the details below and create property !');
+                setMessage('Description processed successfully! Agent assigned automatically. Please review the details below and create property!');
             } else if (matchedAgents.length > 1) {
-                // ⚠ If multiple matches, let user select
+                // ⚠ Multiple matches: auto-populate property fields but let user select an agent
+                setFormData({
+                    ...formData,
+                    ...structuredData, // Auto-populate property fields
+                    agentId: '', // Leave agent assignment for user selection
+                    agentDetails: '', // Clear agent details for now
+                });
                 setMessage('Multiple agents matched. Please select the correct agent.');
                 setAgentOptions(matchedAgents); // Store matched agents for dropdown selection
             } else {
-                // ❌ No match found
+                // ❌ No match found: auto-populate property fields and leave agent assignment empty
                 setFormData({
                     ...formData,
                     ...structuredData,
-                    agentId: '', // No match, leave blank
+                    agentId: '', // No agent found
                     agentDetails: '',
                 });
                 setMessage('Description processed successfully! However, no matching agent was found.');
             }
-
+    
             setProcessedDetails(structuredData);
-
+    
         } catch (error) {
             console.error('Error processing description:', error);
             setMessage('Failed to process description. Please try again.');
         }
     };
+    
 
 
     const handleSubmit = async (e) => {
@@ -157,6 +165,8 @@ const PropertyForm = () => {
                 insurance: '',
                 floodZone: '',
                 bushfireZone: '',
+                publicListing: false,  // By default, not public
+                showAddress: true  // By default, not show address
             });
             setDescription('');
             setSearchAgent('');

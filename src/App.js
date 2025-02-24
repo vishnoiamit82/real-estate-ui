@@ -20,6 +20,7 @@ import SignupForm from './components/SignupForm';
 import UserManagement from './components/UserManagement';
 import LoginForm from './components/Loginform';
 import ProtectedRoute from './components/ProtectedRoute';
+import  SharedPropertyPage from './components/SharedPropertyPage'
 import {jwtDecode} from 'jwt-decode';
 
 function App() {
@@ -52,6 +53,7 @@ function App() {
     // Handle user logout
     const handleLogout = () => {
         setCurrentUser(null);
+        localStorage.setItem('currentUser', null);
         localStorage.removeItem('authToken');
         window.location.href = '/login';
     };
@@ -71,7 +73,7 @@ function App() {
                         <Route path="/add-property" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
                         <Route path="/properties/:id" element={<ProtectedRoute><PropertyDetail /></ProtectedRoute>} />
                         <Route path="/edit-property/:id" element={<ProtectedRoute><PropertyEdit /></ProtectedRoute>} />
-                        <Route path="/agents" element={<ProtectedRoute><AgentList /></ProtectedRoute>} />
+                        
                         <Route path="/add-agent" element={<ProtectedRoute><AgentForm /></ProtectedRoute>} />
                         <Route path="/edit-agent/:id" element={<ProtectedRoute><AgentForm /></ProtectedRoute>} />
                         <Route path="/client-briefs" element={<ProtectedRoute><ClientBriefDashboard /></ProtectedRoute>} />
@@ -82,13 +84,24 @@ function App() {
                         <Route path="/cashflow-calculator" element={<ProtectedRoute><CashFlowCalculator /></ProtectedRoute>} />
                         <Route path="/template-management" element={<ProtectedRoute><EmailTemplateManagement /></ProtectedRoute>} />
                         <Route path="/email-replies" element={<ProtectedRoute><EmailReplies /></ProtectedRoute>} />
+                        // In your React Router configuration
+                        <Route path="/shared/:shareToken" element={<SharedPropertyPage />} />
+
 
                         {/* Admin-Only Protected Route */}
                         <Route path="/user-management" element={
                             <ProtectedRoute requiredRole="admin">
                                 <UserManagement />
+                                
                             </ProtectedRoute>
                         } />
+                         <Route path="/agents" element={
+                            <ProtectedRoute requiredRole="admin">
+                                <AgentList />
+                                
+                            </ProtectedRoute>
+                        } />
+                        
                     </Routes>
                 </main>
                 <Footer />

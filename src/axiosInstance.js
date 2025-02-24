@@ -43,7 +43,7 @@ axiosInstance.interceptors.request.use(
 
         if (isProtected && token) {
             config.headers['Authorization'] = `Bearer ${token}`;
-            console.log('Authorization header set:', config.headers['Authorization']);
+            // console.log('Authorization header set:', config.headers['Authorization']);
         } else if (isProtected && !token) {
             console.warn('Protected route, but no token found!');
         }

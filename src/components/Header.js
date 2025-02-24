@@ -32,7 +32,7 @@ const Header = ({ currentUser, onLogout }) => {
                             Property Management
                         </NavLink>
                     </li>
-                    <li>
+                    {currentUser?.role === 'admin' && (<li>
                         <NavLink
                             to="/agents"
                             className={({ isActive }) =>
@@ -42,7 +42,9 @@ const Header = ({ currentUser, onLogout }) => {
                             Agent Management
                         </NavLink>
                     </li>
-                    <li>
+                    )}
+                     {currentUser?.role === 'admin' && (<li>
+                        
                         <NavLink
                             to="/dashboard"
                             className={({ isActive }) =>
@@ -52,6 +54,7 @@ const Header = ({ currentUser, onLogout }) => {
                             Dashboard
                         </NavLink>
                     </li>
+                    )}
                     <li>
                         <NavLink
                             to="/cashflow-calculator"

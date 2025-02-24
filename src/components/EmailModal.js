@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axiosInstance from '../axiosInstance';
 
 const EmailModal = ({ property, agent, templates, onClose }) => {
@@ -6,7 +6,23 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
     const [subject, setSubject] = useState('');
     const [attachments, setAttachments] = useState([]);
     const [isSending, setIsSending] = useState(false);
-    const messageRef = useRef(null); // Use ref for contentEditable div
+    const [ccEmail, setCcEmail] = useState(''); // initialize as empty string
+    const messageRef = useRef(null);
+
+    // Update ccEmail after mount to avoid hydration issues
+    useEffect(() => {
+        const storedUser = localStorage.getItem('currentUser');
+        if (storedUser) {
+            try {
+                const currentUser = JSON.parse(storedUser);
+                if (currentUser?.email) {
+                    setCcEmail(currentUser.email);
+                }
+            } catch (error) {
+                console.error('Error parsing currentUser from localStorage:', error);
+            }
+        }
+    }, []);
 
     const applyTemplate = (templateId) => {
         const template = templates.find(t => t._id === templateId);
@@ -19,7 +35,7 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
 
             setSubject(filledSubject);
             if (messageRef.current) {
-                messageRef.current.innerHTML = filledBody; // Set inner HTML for formatting
+                messageRef.current.innerHTML = filledBody;
             }
         }
     };
@@ -27,13 +43,14 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
     const handleSendEmail = async () => {
         setIsSending(true);
         try {
-            const messageContent = messageRef.current.innerHTML; // Get the HTML content
+            const messageContent = messageRef.current.innerHTML;
             await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/send-email`, {
                 to: agent.email,
+                cc: ccEmail, // Use the ccEmail state value
                 propertyAddress: property.address,
                 clientName: agent.name,
                 subject,
-                message: messageContent, // Send as HTML
+                message: messageContent,
                 attachments
             });
             alert('Email sent successfully!');
@@ -51,7 +68,7 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
         const fileArray = Array.from(files).map(file => ({
             filename: file.name,
             mimetype: file.type,
-            base64: '' // Need to convert to base64 before sending
+            base64: '' // Convert the file to base64 as needed
         }));
         setAttachments(fileArray);
     };
@@ -73,7 +90,6 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
                     ))}
                 </select>
 
-                {/* Editable Subject */}
                 <input
                     type="text"
                     className="w-full border p-2 rounded-md mt-4"
@@ -82,18 +98,28 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
                     placeholder="Email Subject"
                 />
 
-                {/* Editable Email Body (Rich Text) */}
+                {/* Form field for CC email */}
+                <input
+                    type="text"
+                    className="w-full border p-2 rounded-md mt-4"
+                    value={ccEmail}
+                    onChange={(e) => setCcEmail(e.target.value)}
+                    placeholder="CC Email"
+                />
+
                 <div
                     ref={messageRef}
                     contentEditable
                     className="w-full border p-2 rounded-md mt-4 h-60 overflow-y-auto outline-none"
-                    style={{ whiteSpace: 'pre-wrap' }} // Preserve line breaks
+                    style={{ whiteSpace: 'pre-wrap' }}
                 />
 
                 <input type="file" multiple onChange={handleFileUpload} className="mt-4" />
 
                 <div className="flex justify-end mt-4">
-                    <button onClick={onClose} className="px-4 py-2 bg-gray-500 text-white rounded-md mr-2">Cancel</button>
+                    <button onClick={onClose} className="px-4 py-2 bg-gray-500 text-white rounded-md mr-2">
+                        Cancel
+                    </button>
                     <button
                         onClick={handleSendEmail}
                         className="px-4 py-2 bg-blue-500 text-white rounded-md"
