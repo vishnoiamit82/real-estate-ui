@@ -7,16 +7,17 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
     const [attachments, setAttachments] = useState([]);
     const [isSending, setIsSending] = useState(false);
     const [ccEmail, setCcEmail] = useState(''); // initialize as empty string
+    const [toEmail, setToEmail] = useState(agent.email || ''); // New state for To Email
     const messageRef = useRef(null);
 
-    // Update ccEmail after mount to avoid hydration issues
+    // Update ccEmail and toEmail after mount to avoid hydration issues
     useEffect(() => {
         const storedUser = localStorage.getItem('currentUser');
         if (storedUser) {
             try {
                 const currentUser = JSON.parse(storedUser);
                 if (currentUser?.email) {
-                    setCcEmail(currentUser.email);
+                    setCcEmail("info@nationalpropertyconsultant.com.au");
                 }
             } catch (error) {
                 console.error('Error parsing currentUser from localStorage:', error);
@@ -31,7 +32,7 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
             const filledSubject = template.subject.replace('{{property_address}}', property.address);
             const filledBody = template.body
                 .replace('{{property_address}}', property.address)
-                .replace('{{sales_agent_name}}', agent.name);
+                .replace('{{sales_agent_name}}', agent.name.split(' ')[0]);
 
             setSubject(filledSubject);
             if (messageRef.current) {
@@ -45,7 +46,7 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
         try {
             const messageContent = messageRef.current.innerHTML;
             await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/send-email`, {
-                to: agent.email,
+                to: toEmail,
                 cc: ccEmail, // Use the ccEmail state value
                 propertyAddress: property.address,
                 clientName: agent.name,
@@ -96,6 +97,15 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     placeholder="Email Subject"
+                />
+
+                {/* Form field for To email */}
+                <input
+                    type="text"
+                    className="w-full border p-2 rounded-md mt-4"
+                    value={toEmail}
+                    onChange={(e) => setToEmail(e.target.value)}
+                    placeholder="To Email"
                 />
 
                 {/* Form field for CC email */}

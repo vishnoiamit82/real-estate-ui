@@ -22,6 +22,20 @@ const Header = ({ currentUser, onLogout }) => {
                 </h1>
 
                 <ul className="flex space-x-4">
+
+                    {/* Show Template Management to Admin and Property Sourcer */}
+                    {(currentUser?.role === 'admin' || currentUser?.role === 'property_sourcer') && (
+                        <li>
+                            <NavLink
+                                to="/template-management"
+                                className={({ isActive }) =>
+                                    isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'
+                                }
+                            >
+                                Email Templates
+                            </NavLink>
+                        </li>
+                    )}
                     <li>
                         <NavLink
                             to="/"
@@ -29,7 +43,7 @@ const Header = ({ currentUser, onLogout }) => {
                                 isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'
                             }
                         >
-                            Property Management
+                            Property Sourcing
                         </NavLink>
                     </li>
                     {currentUser?.role === 'admin' && (<li>
@@ -43,8 +57,8 @@ const Header = ({ currentUser, onLogout }) => {
                         </NavLink>
                     </li>
                     )}
-                     {currentUser?.role === 'admin' && (<li>
-                        
+                    {currentUser?.role === 'admin' && (<li>
+
                         <NavLink
                             to="/dashboard"
                             className={({ isActive }) =>
@@ -55,7 +69,7 @@ const Header = ({ currentUser, onLogout }) => {
                         </NavLink>
                     </li>
                     )}
-                    <li>
+                    {currentUser?.role === 'admin' && (<li>
                         <NavLink
                             to="/cashflow-calculator"
                             className={({ isActive }) =>
@@ -64,7 +78,7 @@ const Header = ({ currentUser, onLogout }) => {
                         >
                             Cashflow Calculator
                         </NavLink>
-                    </li>
+                    </li>)}
 
                     {/* Show Signup link only if not logged in */}
                     {!currentUser && (

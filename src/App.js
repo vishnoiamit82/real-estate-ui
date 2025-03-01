@@ -84,6 +84,7 @@ function App() {
                         <Route path="/cashflow-calculator" element={<ProtectedRoute><CashFlowCalculator /></ProtectedRoute>} />
                         <Route path="/template-management" element={<ProtectedRoute><EmailTemplateManagement /></ProtectedRoute>} />
                         <Route path="/email-replies" element={<ProtectedRoute><EmailReplies /></ProtectedRoute>} />
+                        
                         // In your React Router configuration
                         <Route path="/shared/:shareToken" element={<SharedPropertyPage />} />
 

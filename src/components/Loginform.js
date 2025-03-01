@@ -29,7 +29,7 @@ const LoginForm = ({ setCurrentUser }) => {
             if (response.data.user.role === 'admin') {
                 navigate('/user-management');
             } else {
-                navigate('/dashboard');
+                navigate('/');
             }
         } catch (error) {
             console.error('Login error:', error);

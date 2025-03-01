@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../axiosInstance';
+import CreateAgentModal from './CreateAgentModal';
 
 const PropertyForm = () => {
     const [formData, setFormData] = useState({
@@ -28,6 +29,7 @@ const PropertyForm = () => {
     const [message, setMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [agentOptions, setAgentOptions] = useState([]);
+    const [isCreatingAgent, setIsCreatingAgent] = useState(false);
 
 
     useEffect(() => {
@@ -44,11 +46,20 @@ const PropertyForm = () => {
         fetchAgents();
     }, []);
 
-    const handleAgentSearch = (e) => {
+    const handleAgentSearch = async (e) => {
         const query = e.target.value.toLowerCase();
         setSearchAgent(query);
-        const filtered = agents.filter((agent) => agent.name.toLowerCase().includes(query));
-        setFilteredAgents(filtered);
+
+        if (query.length > 2) {
+            try {
+                const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/agents?search=${query}`);
+                setFilteredAgents(response.data);
+            } catch (error) {
+                console.error('Error searching agents:', error);
+            }
+        } else {
+            setFilteredAgents([]);
+        }
     };
 
     const handleAgentSelect = (agent) => {
@@ -61,75 +72,106 @@ const PropertyForm = () => {
         setFilteredAgents([]);
     };
 
+    const handleAgentCreated = (newAgent) => {
+        setAgents([...agents, newAgent]);
+        handleAgentSelect(newAgent);
+    };
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
 
+
+    // const handleProcessDescription = async () => {
+    //     if (!description.trim()) {
+    //         setMessage('Please enter a description to process.');
+    //         return;
+    //     }
+    
+    //     try {
+    //         const response = await axiosInstance.post(
+    //             `${process.env.REACT_APP_API_BASE_URL}/process-description`,
+    //             { description },
+    //             { headers: { 'Content-Type': 'application/json' } }
+    //         );
+    
+    //         const structuredData = response.data.structuredData;
+    
+    //         console.log('Structured Data:', structuredData);
+    //         console.log('Agents List:', agents);
+    
+    //         // Match the agentName from structuredData with the agents list
+    //         const matchedAgents = agents.filter((agent) => {
+    //             if (!agent.name || !structuredData.agentName) {
+    //                 console.warn('Missing agent name in comparison:', { agent, structuredAgentName: structuredData.agentName });
+    //                 return false;
+    //             }
+    //             return agent.name.toLowerCase().includes(structuredData.agentName.toLowerCase());
+    //         });
+    
+    //         console.log('Matched Agents:', matchedAgents);
+    
+    //         if (matchedAgents.length === 1) {
+    //             // ✅ One match: auto-populate all fields and assign the agent automatically
+    //             setFormData({
+    //                 ...formData,
+    //                 ...structuredData, // Auto-populate property fields
+    //                 agentId: matchedAgents[0]._id,
+    //                 agentDetails: `${matchedAgents[0].name}, ${matchedAgents[0].phoneNumber || 'N/A'}, ${matchedAgents[0].email || 'N/A'}`,
+    //             });
+    //             setMessage('Description processed successfully! Agent assigned automatically. Please review the details below and create property!');
+    //         } else if (matchedAgents.length > 1) {
+    //             // ⚠ Multiple matches: auto-populate property fields but let user select an agent
+    //             setFormData({
+    //                 ...formData,
+    //                 ...structuredData, // Auto-populate property fields
+    //                 agentId: '', // Leave agent assignment for user selection
+    //                 agentDetails: '', // Clear agent details for now
+    //             });
+    //             setMessage('Multiple agents matched. Please select the correct agent.');
+    //             setAgentOptions(matchedAgents); // Store matched agents for dropdown selection
+    //         } else {
+    //             // ❌ No match found: auto-populate property fields and leave agent assignment empty
+    //             setFormData({
+    //                 ...formData,
+    //                 ...structuredData,
+    //                 agentId: '', // No agent found
+    //                 agentDetails: '',
+    //             });
+    //             setMessage('Description processed successfully! However, no matching agent was found.');
+    //         }
+    
+    //         setProcessedDetails(structuredData);
+    
+    //     } catch (error) {
+    //         console.error('Error processing description:', error);
+    //         setMessage('Failed to process description. Please try again.');
+    //     }
+    // };
+
     const handleProcessDescription = async () => {
         if (!description.trim()) {
-            setMessage('Please enter a description to process.');
+            alert('Please enter a description to process.');
             return;
         }
-    
+
         try {
             const response = await axiosInstance.post(
                 `${process.env.REACT_APP_API_BASE_URL}/process-description`,
                 { description },
                 { headers: { 'Content-Type': 'application/json' } }
             );
-    
+
             const structuredData = response.data.structuredData;
-    
-            console.log('Structured Data:', structuredData);
-            console.log('Agents List:', agents);
-    
-            // Match the agentName from structuredData with the agents list
-            const matchedAgents = agents.filter((agent) => {
-                if (!agent.name || !structuredData.agentName) {
-                    console.warn('Missing agent name in comparison:', { agent, structuredAgentName: structuredData.agentName });
-                    return false;
-                }
-                return agent.name.toLowerCase().includes(structuredData.agentName.toLowerCase());
+            setFormData({
+                ...formData,
+                ...structuredData,
             });
-    
-            console.log('Matched Agents:', matchedAgents);
-    
-            if (matchedAgents.length === 1) {
-                // ✅ One match: auto-populate all fields and assign the agent automatically
-                setFormData({
-                    ...formData,
-                    ...structuredData, // Auto-populate property fields
-                    agentId: matchedAgents[0]._id,
-                    agentDetails: `${matchedAgents[0].name}, ${matchedAgents[0].phoneNumber || 'N/A'}, ${matchedAgents[0].email || 'N/A'}`,
-                });
-                setMessage('Description processed successfully! Agent assigned automatically. Please review the details below and create property!');
-            } else if (matchedAgents.length > 1) {
-                // ⚠ Multiple matches: auto-populate property fields but let user select an agent
-                setFormData({
-                    ...formData,
-                    ...structuredData, // Auto-populate property fields
-                    agentId: '', // Leave agent assignment for user selection
-                    agentDetails: '', // Clear agent details for now
-                });
-                setMessage('Multiple agents matched. Please select the correct agent.');
-                setAgentOptions(matchedAgents); // Store matched agents for dropdown selection
-            } else {
-                // ❌ No match found: auto-populate property fields and leave agent assignment empty
-                setFormData({
-                    ...formData,
-                    ...structuredData,
-                    agentId: '', // No agent found
-                    agentDetails: '',
-                });
-                setMessage('Description processed successfully! However, no matching agent was found.');
-            }
-    
             setProcessedDetails(structuredData);
-    
         } catch (error) {
             console.error('Error processing description:', error);
-            setMessage('Failed to process description. Please try again.');
+            alert('Failed to process description. Please try again.');
         }
     };
     
@@ -183,6 +225,45 @@ const PropertyForm = () => {
                 <p className="mb-4 text-green-600 bg-green-100 p-2 rounded">{successMessage}</p>
             )}
             {message && <p className="mb-4 text-red-600 bg-red-100 p-2 rounded">{message}</p>}
+
+            <div className="border rounded-md p-4 bg-gray-50">
+                <h3 className="text-lg font-bold mb-4">Agent Information</h3>
+                <input
+                    type="text"
+                    placeholder="Search for an agent"
+                    value={searchAgent}
+                    onChange={handleAgentSearch}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                />
+                {filteredAgents.length > 0 && (
+                    <ul className="bg-white border border-gray-300 rounded-md mt-2 shadow-md max-h-40 overflow-y-auto">
+                        {filteredAgents.map((agent) => (
+                            <li
+                                key={agent._id}
+                                className="p-2 hover:bg-gray-100 cursor-pointer"
+                                onClick={() => handleAgentSelect(agent)}
+                            >
+                                {agent.name}, {agent.email}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                {filteredAgents.length === 0 && searchAgent && (
+                    <button
+                        onClick={() => setIsCreatingAgent(true)}
+                        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                    >
+                        Create New Agent
+                    </button>
+                )}
+            </div>
+            {isCreatingAgent && (
+                <CreateAgentModal
+                    isOpen={isCreatingAgent}
+                    onClose={() => setIsCreatingAgent(false)}
+                    onAgentCreated={handleAgentCreated}
+                />
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Process Description */}

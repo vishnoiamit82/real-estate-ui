@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import axiosInstance from '../axiosInstance';
 import Pagination from '@mui/material/Pagination';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Edit2, Trash, RotateCcw, NotebookText, Mail,Share2 } from 'lucide-react'; // Icons
+import { Eye, Edit2, Trash, RotateCcw, NotebookText, Mail, Share2 } from 'lucide-react'; // Icons
 import NotesModal from "./NotesModal"; // Import the NotesModal component
 import EmailModal from './EmailModal';
 import EmailReplies from './EmailReplies';
+import PropertyTable from './PropertyTable';
+
 
 
 const PropertyList = () => {
@@ -17,7 +19,7 @@ const PropertyList = () => {
     const navigate = useNavigate();
     const [sortKey, setSortKey] = useState('createdAt'); // Default sort key
     const [sortOrder, setSortOrder] = useState('desc'); // Default sort order
-    const [filter, setFilter] = useState("pursue");
+    const [filter, setFilter] = useState("all");
     const indexOfLastProperty = currentPage * propertiesPerPage;
     const indexOfFirstProperty = indexOfLastProperty - propertiesPerPage;
     const [selectedProperty, setSelectedProperty] = useState(null);
@@ -41,6 +43,15 @@ const PropertyList = () => {
         fetchTemplates();
     }, []);
 
+    useEffect(() => {
+        console.log("Filter Changed:", filter);
+        setCurrentPage(1); // Reset pagination
+    }, [filter]);
+
+
+    
+    
+
     const openEmailModal = (property, agent) => {
         setSelectedPropertyForEmail(property);
         setSelectedAgent(agent);
@@ -58,7 +69,7 @@ const PropertyList = () => {
         console.log("currentUser.id:", currentUser.id, typeof currentUser.id);
 
         if (currentUser.role === 'admin') return true;
-        
+
         // Allow if the listing is public
         if (property.publicListing) return true;
         // Allow if the current user created the property
@@ -71,17 +82,17 @@ const PropertyList = () => {
     // Inside your PropertyList or PropertyDetail component:
     const handleShareProperty = async (propertyId) => {
         try {
-        const response = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/properties/${propertyId}/share`);
-        
-        const { shareLink } = response.data;
-        // Show the share link to the user, e.g., in a modal or toast
-        alert(`Share this link: ${shareLink}`);
+            const response = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/properties/${propertyId}/share`);
+
+            const { shareLink } = response.data;
+            // Show the share link to the user, e.g., in a modal or toast
+            alert(`Share this link: ${shareLink}`);
         } catch (error) {
-        console.error('Error sharing property:', error);
-        alert('Failed to generate share link.');
+            console.error('Error sharing property:', error);
+            alert('Failed to generate share link.');
         }
     };
-    
+
 
 
     const filteredProperties = privacyFilteredProperties
@@ -109,6 +120,11 @@ const PropertyList = () => {
             return address.includes(searchQuery) || agentName.includes(searchQuery);
         });
 
+
+    useEffect(() => {
+        console.log("Updated Filtered Properties Count:", filteredProperties.length);
+    }, [filteredProperties]);
+    
 
 
 
@@ -305,278 +321,63 @@ const PropertyList = () => {
             {message && <p className="text-green-600">{message}</p>}
 
             {/* Filters Section */}
-            <div className="flex flex-col md:flex-row gap-6 mb-6 items-center justify-between">
-                {/* Property Status Filters */}
-                <div className="flex flex-col">
-                    <span className="text-gray-600 font-semibold mb-2">Property Status</span>
-                    <div className="flex bg-gray-100 p-1 rounded-lg shadow-sm">
-                        <button
-                            onClick={() => setFilter("undecided")}
-                            className={`px-6 py-2 rounded-md transition-colors duration-300 text-sm font-medium ${filter === "undecided" ? "bg-blue-500 text-white shadow-md" : "bg-white text-gray-700 hover:bg-gray-200"
-                                }`}
-                        >
-                            Undecided
-                        </button>
-                        <button
-                            onClick={() => setFilter("deleted")}
-                            className={`px-6 py-2 rounded-md transition-colors duration-300 text-sm font-medium ${filter === "deleted" ? "bg-red-500 text-white shadow-md" : "bg-white text-gray-700 hover:bg-gray-200"
-                                }`}
-                        >
-                            Deleted
-                        </button>
-                        <button
-                            onClick={() => setFilter("all")}
-                            className={`px-6 py-2 rounded-md transition-colors duration-300 text-sm font-medium ${filter === "all" ? "bg-gray-500 text-white shadow-md" : "bg-white text-gray-700 hover:bg-gray-200"
-                                }`}
-                        >
-                            All
-                        </button>
-                    </div>
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-gray-100 dark:bg-gray-900 p-4 rounded-md shadow-md">
+                            {/* Filter Dropdown */}
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                    <label className="text-gray-700 dark:text-gray-300 text-sm">Filter:</label>
+                    <select
+                        value={filter}
+                        onChange={(e) => {
+                            setFilter(e.target.value);
+                            setCurrentPage(1); // Reset pagination when filter changes
+                        }}
+                        className="w-full md:w-auto p-2 border rounded-md bg-white dark:bg-gray-800 dark:text-white border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="all">All Properties</option>
+                        <option value="pursue">Pursue</option>
+                        <option value="on_hold">On Hold</option>
+                        <option value="deleted">Deleted</option>
+                        <option value="undecided">Undecided</option>
+                    </select>
                 </div>
 
-                {/* Decision Status Filters */}
-                <div className="flex flex-col">
-                    <span className="text-gray-600 font-semibold mb-2">Decision Status</span>
-                    <div className="flex bg-gray-100 p-1 rounded-lg shadow-sm">
-                        <button
-                            onClick={() => setFilter("pursue")}
-                            className={`px-6 py-2 rounded-md transition-colors duration-300 text-sm font-medium ${filter === "pursue" ? "bg-green-500 text-white shadow-md" : "bg-white text-gray-700 hover:bg-gray-200"
-                                }`}
-                        >
-                            Pursue
-                        </button>
-                        <button
-                            onClick={() => setFilter("on_hold")}
-                            className={`px-6 py-2 rounded-md transition-colors duration-300 text-sm font-medium ${filter === "on_hold" ? "bg-yellow-500 text-white shadow-md" : "bg-white text-gray-700 hover:bg-gray-200"
-                                }`}
-                        >
-                            On Hold
-                        </button>
-                    </div>
-                </div>
-
-                {/* Search Bar (Property & Agent) */}
-                <div className="relative w-full md:w-1/3">
+                
+                
+                {/* Search Input */}
+                <div className="flex items-center gap-2 w-full md:w-1/3 relative">
+                    <label className="sr-only">Search Properties</label>
                     <input
                         type="text"
-                        placeholder="Search by property address or agent name..."
+                        placeholder="Search properties..."
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
-                        className="w-full p-3 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        onChange={(e) => {
+                            setSearchQuery(e.target.value.toLowerCase());
+                            setCurrentPage(1); // Reset pagination when search query changes
+                        }}
+                        className="w-full p-2 pl-8 border rounded-md bg-white dark:bg-gray-800 dark:text-white border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
                     />
-                    {/* Search Icon */}
-                    <svg
-                        className="absolute left-3 top-3 text-gray-500 w-5 h-5"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
+                    <svg className="absolute left-2 top-2 text-gray-500 dark:text-gray-400 w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
                     </svg>
                 </div>
             </div>
 
-
-
-
             {/* Property Table */}
-            <table className="w-full border-collapse border border-gray-300">
-                <thead>
-                    <tr className="bg-gray-100">
+            <PropertyTable
+                properties={filteredProperties}
+                navigate={navigate}
+                setSelectedPropertyForEmail={setSelectedPropertyForEmail}
+                setSelectedAgent={setSelectedAgent}
+                setSelectedPropertyForNotes={setSelectedPropertyForNotes}
+                handleSort={handleSort}
+                sortKey={sortKey}
+                sortOrder={sortOrder}
+                deleteProperty={deleteProperty} 
+                restoreProperty={restoreProperty} 
+                updateDecisionStatus={updateDecisionStatus} 
+                handleShareProperty={handleShareProperty}
+            />
 
-                        <th className="border border-gray-300 p-2 text-left">Decision status</th>
-                        <th className="border border-gray-300 p-2 text-left">Address</th>
-                        <th className="border border-gray-300 p-2 text-left">Notes</th>
-                        <th
-                            className="border border-gray-300 p-2 text-left cursor-pointer"
-                            onClick={() => handleSort('offerClosingDate')}
-                        >
-                            Offer Closing Date {sortKey === 'offerClosingDate' && (sortOrder === 'asc' ? '↑' : '↓')}
-                        </th>
-                        <th className="border border-gray-300 p-2 text-left">Availability</th>
-                        <th className="border border-gray-300 p-2 text-left">Agent Name</th>
-                        <th className="border border-gray-300 p-2 text-left">Asking Price</th>
-                        <th
-                            className="border border-gray-300 p-2 text-left cursor-pointer"
-                            onClick={() => handleSort('createdAt')}
-                        >
-                            Created At {sortKey === 'createdAt' && (sortOrder === 'asc' ? '↑' : '↓')}
-                        </th>
-                        <th className="border border-gray-300 p-2 text-left">Rental Yield</th>
-                        <th className="border border-gray-300 p-2 text-left">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {currentProperties.length === 0 ? (
-                        <tr>
-                            <td colSpan="8" className="text-center p-4">No properties found.</td>
-                        </tr>
-                    ) : (
-                        currentProperties.map((property) => (
-                            <tr
-                                key={property._id}
-                                className={`border-t border-gray-300 ${property.is_deleted ? "bg-gray-100" : ""
-                                    }`}
-                                onClick={() => setSelectedProperty(property)}
-                            >
-
-                                <td className="p-2">
-                                    {property.decisionStatus === "pursue" && (
-                                        <span className="text-green-600 font-bold">Pursue</span>
-                                    )}
-                                    {property.decisionStatus === "on_hold" && (
-                                        <span className="text-yellow-600 font-bold">On Hold</span>
-                                    )}
-                                    {property.decisionStatus === "undecided" && (
-                                        <span className="text-gray-600">Undecided</span>
-                                    )}
-                                </td>
-
-
-                                {/* Address */}
-                                <td className="p-2">
-                                    {property.showAddress ? (
-                                        property.propertyLink ? (
-                                            <a
-                                                href={property.propertyLink}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-500 underline hover:text-blue-700"
-                                            >
-                                                {property.address || "N/A"}
-                                            </a>
-                                        ) : (
-                                            <span>{property.address || "N/A"}</span>
-                                        )
-                                    ) : (
-                                        <span>Address Hidden</span>
-                                    )}
-                                </td>
-
-                                {/* Quick Notes Button */}
-                                <button
-                                    onClick={() => openNotesModal(property)}
-                                    className="px-2 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 flex items-center"
-                                >
-                                    <NotebookText size={16} />
-                                </button>
-
-                                <button
-                                    onClick={() => openEmailModal(property, property.agentId)}
-                                    className="px-2 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 flex items-center"
-                                >
-                                    <Mail size={16} />
-                                </button>
-
-
-
-                                {/* Offer Closing Date */}
-                                <td className="p-2">
-                                    {property.offerClosingDate
-                                        ? new Date(property.offerClosingDate).toLocaleDateString()
-                                        : "N/A"}
-                                </td>
-
-                                {/* Availability */}
-                                <td className="p-2">
-                                    {property.currentStatus === "available"
-                                        ? "Available"
-                                        : "Sold"}
-                                </td>
-
-                                {/* Agent Name */}
-                                <td className="p-2">
-                                    <a
-                                        href={`/agents/${property.agentId?._id}`}
-                                        className="text-blue-500 underline hover:text-blue-700"
-                                    >
-                                        {property.agentId?.name || "N/A"}
-                                    </a>
-                                </td>
-
-                                {/* Asking Price */}
-                                <td className="p-2">{property.askingPrice || "N/A"}</td>
-
-                                {/* Created At */}
-                                <td className="p-2">
-                                    {property.createdAt
-                                        ? new Date(property.createdAt).toLocaleString()
-                                        : "N/A"}
-                                </td>
-
-                                {/* Rental Value | Rental Yield Column */}
-                                <td className="p-2">
-                                    {property.rental ? property.rental : "N/A"}
-                                    {" | "}
-                                    {property.rentalYield ? property.rentalYield : "N/A"}
-                                </td>
-
-                                {/* Actions */}
-
-                                <td className="p-2 flex space-x-2">
-                                    {/* View Property */}
-                                    <button
-                                        onClick={() => navigate(`/properties/${property._id}`)}
-                                        className="px-2 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 flex items-center"
-                                    >
-                                        <Eye size={16} />
-                                    </button>
-
-                                    {/* Edit Property */}
-                                    <button
-                                        onClick={() => navigate(`/edit-property/${property._id}`)}
-                                        className="px-2 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center"
-                                    >
-                                        <Edit2 size={16} />
-                                    </button>
-
-                                    {/* Conditional Actions: Delete or Restore */}
-                                    {property.is_deleted ? (
-                                        // Restore Button
-                                        <button
-                                            onClick={() => restoreProperty(property._id)}
-                                            className="px-2 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center"
-                                        >
-                                            <RotateCcw size={16} />
-                                        </button>
-                                    ) : (
-                                        // Delete Button
-                                        <button
-                                            onClick={() => deleteProperty(property._id)}
-                                            className="px-2 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 flex items-center"
-                                        >
-                                            <Trash size={16} />
-                                        </button>
-                                    )}
-
-                                    <button
-                                        onClick={() => updateDecisionStatus(property._id, "pursue")}
-                                        className="px-2 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
-                                    >
-                                        Pursue
-                                    </button>
-
-
-                                    <button
-                                        onClick={() => updateDecisionStatus(property._id, "on_hold")}
-                                        className="px-2 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
-                                    >
-                                        Hold
-                                    </button>
-
-                                    <button onClick={(e) => { e.stopPropagation(); handleShareProperty(property._id); }} className="px-2 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 flex items-center">
-                                        <Share2 size={16} className="mr-1" /> Share
-                                    </button>
-                                </td>
-
-
-                            </tr>
-                        ))
-                    )}
-                </tbody>
-
-            </table>
 
 
             {selectedPropertyForNotes && (
