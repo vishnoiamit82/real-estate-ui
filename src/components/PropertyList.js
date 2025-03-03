@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import axiosInstance from '../axiosInstance';
 import Pagination from '@mui/material/Pagination';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Edit2, Trash, RotateCcw, NotebookText, Mail, Share2 } from 'lucide-react'; // Icons
 import NotesModal from "./NotesModal"; // Import the NotesModal component
 import EmailModal from './EmailModal';
 import EmailReplies from './EmailReplies';
 import PropertyTable from './PropertyTable';
+import { PlusCircle, UserPlus, Filter, Search, ChevronDown, ChevronUp } from 'lucide-react';
+
+
 
 
 
@@ -49,8 +51,8 @@ const PropertyList = () => {
     }, [filter]);
 
 
-    
-    
+
+
 
     const openEmailModal = (property, agent) => {
         setSelectedPropertyForEmail(property);
@@ -124,7 +126,7 @@ const PropertyList = () => {
     useEffect(() => {
         console.log("Updated Filtered Properties Count:", filteredProperties.length);
     }, [filteredProperties]);
-    
+
 
 
 
@@ -297,94 +299,129 @@ const PropertyList = () => {
 
 
     return (
-        <div className="container mx-auto p-6">
+        <div className="container mx-auto p-6 space-y-6">
+            
             {/* Header Section */}
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">Property Summary</h2>
-                <div>
+            <div className="flex flex-col md:flex-row justify-between items-center">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Property Management</h2>
+    
+                {/* Create Buttons */}
+                <div className="flex space-x-3">
                     <button
                         onClick={() => navigate('/add-property')}
-                        className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 mr-2"
+                        className="flex items-center px-5 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all text-sm md:text-base shadow-md"
                     >
-                        Create New Property
+                        <PlusCircle className="w-5 h-5 mr-2" /> Create Property
                     </button>
                     <button
                         onClick={() => navigate('/add-agent')}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                        className="flex items-center px-5 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all text-sm md:text-base shadow-md"
                     >
-                        Add Sales Agent
+                        <UserPlus className="w-5 h-5 mr-2" /> Add Sales Agent
                     </button>
                 </div>
             </div>
-
-            {/* Display Messages */}
-            {message && <p className="text-green-600">{message}</p>}
-
-            {/* Filters Section */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-gray-100 dark:bg-gray-900 p-4 rounded-md shadow-md">
-                            {/* Filter Dropdown */}
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                    <label className="text-gray-700 dark:text-gray-300 text-sm">Filter:</label>
-                    <select
-                        value={filter}
-                        onChange={(e) => {
-                            setFilter(e.target.value);
-                            setCurrentPage(1); // Reset pagination when filter changes
-                        }}
-                        className="w-full md:w-auto p-2 border rounded-md bg-white dark:bg-gray-800 dark:text-white border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="all">All Properties</option>
-                        <option value="pursue">Pursue</option>
-                        <option value="on_hold">On Hold</option>
-                        <option value="deleted">Deleted</option>
-                        <option value="undecided">Undecided</option>
-                    </select>
-                </div>
-
-                
-                
-                {/* Search Input */}
-                <div className="flex items-center gap-2 w-full md:w-1/3 relative">
-                    <label className="sr-only">Search Properties</label>
-                    <input
-                        type="text"
-                        placeholder="Search properties..."
-                        value={searchQuery}
-                        onChange={(e) => {
-                            setSearchQuery(e.target.value.toLowerCase());
-                            setCurrentPage(1); // Reset pagination when search query changes
-                        }}
-                        className="w-full p-2 pl-8 border rounded-md bg-white dark:bg-gray-800 dark:text-white border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
-                    />
-                    <svg className="absolute left-2 top-2 text-gray-500 dark:text-gray-400 w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
-                    </svg>
+    
+            {/* Controls Section - Filters, Search, Sorting */}
+            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    {/* Property Filter */}
+                    <div className="flex items-center gap-2">
+                        <Filter className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        <label className="text-gray-700 dark:text-gray-300 text-sm">Filter:</label>
+                        <select
+                            value={filter}
+                            onChange={(e) => {
+                                setFilter(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="w-full md:w-auto px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 transition-all"
+                        >
+                            <option value="all">All Properties</option>
+                            <option value="pursue">Pursue</option>
+                            <option value="on_hold">On Hold</option>
+                            <option value="deleted">Deleted</option>
+                            <option value="undecided">Undecided</option>
+                        </select>
+                    </div>
+    
+                    {/* Search Input */}
+                    <div className="relative">
+                        <Search className="absolute left-3 top-3 w-5 h-5 text-gray-500 dark:text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Search properties..."
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value.toLowerCase());
+                                setCurrentPage(1);
+                            }}
+                            className="w-full p-2 pl-10 border rounded-lg bg-white dark:bg-gray-800 dark:text-white border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 transition-all"
+                        />
+                    </div>
+    
+                    {/* Sorting Dropdown (Now Fully Functional) */}
+                    <div className="flex items-center justify-between gap-2">
+                        <label className="text-gray-700 dark:text-gray-300 text-sm">Sort by:</label>
+                        <select
+                            value={sortKey}
+                            onChange={(e) => setSortKey(e.target.value)}
+                            className="px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 text-sm"
+                        >
+                            <option value="createdAt">Created Date</option>
+                            <option value="offerClosingDate">Offer Closing Date</option>
+                            <option value="askingPrice">Price</option>
+                            <option value="rentalYield">Rental Yield</option>
+                        </select>
+                        <button
+                            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                            className="p-2 bg-gray-300 dark:bg-gray-700 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600"
+                        >
+                            {sortOrder === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </button>
+                    </div>
+    
                 </div>
             </div>
-
-            {/* Property Table */}
-            <PropertyTable
-                properties={filteredProperties}
-                navigate={navigate}
-                setSelectedPropertyForEmail={setSelectedPropertyForEmail}
-                setSelectedAgent={setSelectedAgent}
-                setSelectedPropertyForNotes={setSelectedPropertyForNotes}
-                handleSort={handleSort}
-                sortKey={sortKey}
-                sortOrder={sortOrder}
-                deleteProperty={deleteProperty} 
-                restoreProperty={restoreProperty} 
-                updateDecisionStatus={updateDecisionStatus} 
-                handleShareProperty={handleShareProperty}
-            />
-
-
-
+    
+            {/* Property Table / Cards (Now Receiving Sorted Data) */}
+            <div className="mt-6">
+                <PropertyTable
+                    properties={[...filteredProperties].sort((a, b) => {
+                        let valueA = a[sortKey] || "";
+                        let valueB = b[sortKey] || "";
+    
+                        if (typeof valueA === "string") {
+                            return sortOrder === "asc"
+                                ? valueA.localeCompare(valueB)
+                                : valueB.localeCompare(valueA);
+                        } else if (!isNaN(Date.parse(valueA))) {
+                            return sortOrder === "asc"
+                                ? new Date(valueA) - new Date(valueB)
+                                : new Date(valueB) - new Date(valueA);
+                        } else if (typeof valueA === "number") {
+                            return sortOrder === "asc" ? valueA - valueB : valueB - valueA;
+                        }
+                        return 0;
+                    })}
+                    navigate={navigate}
+                    setSelectedPropertyForEmail={setSelectedPropertyForEmail}
+                    setSelectedAgent={setSelectedAgent}
+                    setSelectedPropertyForNotes={setSelectedPropertyForNotes}
+                    deleteProperty={deleteProperty}
+                    restoreProperty={restoreProperty}
+                    updateDecisionStatus={updateDecisionStatus}
+                    handleShareProperty={handleShareProperty}
+                />
+            </div>
+    
+            {/* Notes Modal */}
             {selectedPropertyForNotes && (
                 <NotesModal property={selectedPropertyForNotes} onClose={closeNotesModal} />
             )}
-
-
+    
+            {/* Email Modal */}
             {selectedPropertyForEmail && selectedAgent && (
                 <EmailModal
                     property={selectedPropertyForEmail}
@@ -393,39 +430,9 @@ const PropertyList = () => {
                     onClose={closeEmailModal}
                 />
             )}
-
-
-            {/* Conversation Panel */}
-            <div className="mt-4 border border-gray-300 rounded-md p-4">
-                {selectedProperty ? (
-                    <>
-                        <h3 className="text-xl font-bold">
-                            Conversations for {selectedProperty.address}
-                        </h3>
-                        <EmailReplies agentEmail={selectedAgent?.email} />
-                        <div className="overflow-y-auto h-64">
-                            {conversations.length > 0 ? (
-                                conversations.map((conv, idx) => (
-                                    <div key={idx} className="p-2 border-b">
-                                        <p className="font-bold">{conv.sender}</p>
-                                        <p>{conv.content}</p>
-                                        <span className="text-xs text-gray-500">
-                                            {new Date(conv.timestamp).toLocaleString()}
-                                        </span>
-                                    </div>
-                                ))
-                            ) : (
-                                <p>No conversations available.</p>
-                            )}
-                        </div>
-                    </>
-                ) : (
-                    <p className="text-gray-500">Select a property to view conversations.</p>
-                )}
-            </div>
-
+    
             {/* Pagination */}
-            <div className="mt-4 flex justify-center">
+            <div className="mt-6 flex justify-center">
                 <Pagination
                     count={totalPages}
                     page={currentPage}
@@ -434,9 +441,9 @@ const PropertyList = () => {
                     shape="rounded"
                 />
             </div>
-        </div >
-
+        </div>
     );
+
 };
 
 export default PropertyList;
