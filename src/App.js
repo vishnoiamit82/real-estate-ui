@@ -20,17 +20,18 @@ import SignupForm from './components/SignupForm';
 import UserManagement from './components/UserManagement';
 import LoginForm from './components/Loginform';
 import ProtectedRoute from './components/ProtectedRoute';
-import  SharedPropertyPage from './components/SharedPropertyPage'
-import {jwtDecode} from 'jwt-decode';
+import SharedPropertyPage from './components/SharedPropertyPage'
+import { jwtDecode } from 'jwt-decode';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
+import { Outlet } from "react-router-dom";
+
 
 
 function App() {
 
     const [currentUser, setCurrentUser] = useState(null);
 
-    
     useEffect(() => {
         const token = localStorage.getItem('authToken');
         if (token) {
@@ -65,18 +66,20 @@ function App() {
         <Router>
             <div className="flex flex-col min-h-screen">
                 <Header currentUser={currentUser} onLogout={handleLogout} />
-                <main className="flex-grow">
+
+                {/* Main Content with Global Top Padding */}
+                <main className="flex-grow pt-20"> {/* Added pt-20 for padding below header */}
                     <Routes>
                         {/* Public Routes */}
                         <Route path="/login" element={<LoginForm setCurrentUser={setCurrentUser} />} />
                         <Route path="/signup" element={<SignupForm />} />
-                        
+
                         {/* Protected Routes for Authenticated Users */}
                         <Route path="/" element={<ProtectedRoute><PropertyList /></ProtectedRoute>} />
                         <Route path="/add-property" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
                         <Route path="/properties/:id" element={<ProtectedRoute><PropertyDetail /></ProtectedRoute>} />
                         <Route path="/edit-property/:id" element={<ProtectedRoute><PropertyEdit /></ProtectedRoute>} />
-                        
+
                         <Route path="/add-agent" element={<ProtectedRoute><AgentForm /></ProtectedRoute>} />
                         <Route path="/edit-agent/:id" element={<ProtectedRoute><AgentForm /></ProtectedRoute>} />
                         <Route path="/client-briefs" element={<ProtectedRoute><ClientBriefDashboard /></ProtectedRoute>} />
@@ -87,30 +90,25 @@ function App() {
                         <Route path="/cashflow-calculator" element={<ProtectedRoute><CashFlowCalculator /></ProtectedRoute>} />
                         <Route path="/template-management" element={<ProtectedRoute><EmailTemplateManagement /></ProtectedRoute>} />
                         <Route path="/email-replies" element={<ProtectedRoute><EmailReplies /></ProtectedRoute>} />
-                        
 
-                        // In your React Router configuration
                         <Route path="/shared/:shareToken" element={<SharedPropertyPage />} />
                         <Route path="/forgot-password" element={<ForgotPassword />} />
                         <Route path="/reset-password/:token" element={<ResetPassword />} />
-
 
                         {/* Admin-Only Protected Route */}
                         <Route path="/user-management" element={
                             <ProtectedRoute requiredRole="admin">
                                 <UserManagement />
-                                
                             </ProtectedRoute>
                         } />
-                         <Route path="/agents" element={
+                        <Route path="/agents" element={
                             <ProtectedRoute requiredRole="admin">
                                 <AgentList />
-                                
                             </ProtectedRoute>
                         } />
-                        
                     </Routes>
                 </main>
+
                 <Footer />
             </div>
         </Router>
