@@ -1,0 +1,36 @@
+/* Ensures the modal backdrop is above everything */
+.modal-backdrop {
+    z-index: 100;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+/* Ensures modal content is always above pagination */
+.modal-content {
+    z-index: 100;
+    position: relative;
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 40rem; /* 640px */
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode support */
+.dark .modal-content {
+    background: #1e1e1e;
+    color: white;
+}
+
+/* Hide overflow when modal is open */
+body.modal-open {
+    overflow: hidden;
+}
