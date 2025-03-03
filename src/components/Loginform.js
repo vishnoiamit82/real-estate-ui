@@ -16,21 +16,11 @@ const LoginForm = ({ setCurrentUser }) => {
                 password
             });
 
-            // ✅ Store JWT token in localStorage
             localStorage.setItem('authToken', response.data.token);
-            console.log('Stored Token:', localStorage.getItem('authToken'));
-
-
-            // ✅ Set the current user in state
             setCurrentUser(response.data.user);
             localStorage.setItem('currentUser', JSON.stringify(response.data.user));
 
-            // ✅ Redirect based on role
-            if (response.data.user.role === 'admin') {
-                navigate('/user-management');
-            } else {
-                navigate('/');
-            }
+            navigate(response.data.user.role === 'admin' ? '/user-management' : '/');
         } catch (error) {
             console.error('Login error:', error);
             setError('Invalid email or password');
@@ -69,6 +59,14 @@ const LoginForm = ({ setCurrentUser }) => {
                     Login
                 </button>
             </form>
+            <div className="mt-4 text-center">
+                <button
+                    onClick={() => navigate('/forgot-password')}
+                    className="text-blue-500 hover:underline"
+                >
+                    Forgot Password?
+                </button>
+            </div>
         </div>
     );
 };

@@ -22,6 +22,9 @@ import LoginForm from './components/Loginform';
 import ProtectedRoute from './components/ProtectedRoute';
 import  SharedPropertyPage from './components/SharedPropertyPage'
 import {jwtDecode} from 'jwt-decode';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
+
 
 function App() {
 
@@ -85,8 +88,11 @@ function App() {
                         <Route path="/template-management" element={<ProtectedRoute><EmailTemplateManagement /></ProtectedRoute>} />
                         <Route path="/email-replies" element={<ProtectedRoute><EmailReplies /></ProtectedRoute>} />
                         
+
                         // In your React Router configuration
                         <Route path="/shared/:shareToken" element={<SharedPropertyPage />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
 
                         {/* Admin-Only Protected Route */}
