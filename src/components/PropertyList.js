@@ -303,7 +303,7 @@ const PropertyList = () => {
             
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between items-center">
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Property Management</h2>
+                {/* <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Property Management</h2> */}
     
                 {/* Create Buttons */}
                 <div className="flex space-x-3">
