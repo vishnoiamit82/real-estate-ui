@@ -37,15 +37,20 @@ const PropertyCardList = ({
                         {/* Property Title and Decision Status */}
                         <div className="flex justify-between items-center mb-2">
                             <h3 className="text-lg font-semibold truncate">{property.address || "N/A"}</h3>
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-md ${property.decisionStatus === 'pursue' ? 'bg-green-500 text-white' : property.decisionStatus === 'on_hold' ? 'bg-yellow-500 text-white' : 'bg-gray-500 text-white'}`}>
-                                {property.decisionStatus}
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-md ${property.is_deleted ? 'bg-red-500 text-white' :
+                                property.decisionStatus === 'pursue' ? 'bg-green-500 text-white' :
+                                property.decisionStatus === 'on_hold' ? 'bg-yellow-500 text-white' :
+                                'bg-gray-500 text-white'}`}>
+                                {property.is_deleted ? 'Deleted' : property.decisionStatus || 'Undecided'}
                             </span>
                         </div>
 
                         {/* Property Details */}
                         <p className="text-sm text-gray-600 dark:text-gray-300">Offer Date: {property.offerClosingDate ? new Date(property.offerClosingDate).toLocaleDateString() : "N/A"}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Agent: <a href={`/agents/${property.agentId?._id}`} className="text-blue-500 hover:underline">{property.agentId?.name || "N/A"}</a>
+                            {/* Agent: <a href={`/agents/${property.agentId?._id}`} className="text-blue-500 hover:underline">{property.agentId?.name || "N/A"}</a> */}
+                            Agent: <span className="text-gray-700">{property.agentId?.name || "N/A"}</span>
+
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-300">Price: {property.askingPrice || "N/A"}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-300">Rental Yield: {property.rental ? `${property.rental} | ${property.rentalYield}` : "N/A"}</p>
