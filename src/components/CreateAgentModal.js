@@ -45,18 +45,23 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
     };
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
-                <h2 className="text-xl font-bold mb-4">Create New Agent</h2>
-                {errorMessage && <p className="text-red-600 text-sm mb-2">{errorMessage}</p>}
-                <form onSubmit={handleSubmit}>
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 p-4">
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-11/12 sm:w-1/3 max-w-md">
+                {/* Header */}
+                <h2 className="text-lg sm:text-xl font-bold mb-3 text-gray-900">Create New Agent</h2>
+                
+                {/* Error Message */}
+                {errorMessage && <p className="text-red-600 text-sm mb-3">{errorMessage}</p>}
+                
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="space-y-3">
                     <input
                         type="text"
                         name="name"
                         placeholder="Agent Name"
                         value={agentData.name}
                         onChange={handleChange}
-                        className="w-full border p-2 rounded-md mt-2"
+                        className="w-full border p-2 rounded-md focus:ring focus:ring-blue-300"
                         required
                     />
                     <input
@@ -65,7 +70,7 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
                         placeholder="Agent Email"
                         value={agentData.email}
                         onChange={handleChange}
-                        className="w-full border p-2 rounded-md mt-2"
+                        className="w-full border p-2 rounded-md focus:ring focus:ring-blue-300"
                     />
                     <input
                         type="tel"
@@ -73,7 +78,7 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
                         placeholder="Agent Phone Number"
                         value={agentData.phoneNumber}
                         onChange={handleChange}
-                        className="w-full border p-2 rounded-md mt-2"
+                        className="w-full border p-2 rounded-md focus:ring focus:ring-blue-300"
                     />
                     <input
                         type="text"
@@ -81,7 +86,7 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
                         placeholder="Agency Name"
                         value={agentData.agencyName}
                         onChange={handleChange}
-                        className="w-full border p-2 rounded-md mt-2"
+                        className="w-full border p-2 rounded-md focus:ring focus:ring-blue-300"
                     />
                     <input
                         type="text"
@@ -89,13 +94,21 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
                         placeholder="Region"
                         value={agentData.region}
                         onChange={handleChange}
-                        className="w-full border p-2 rounded-md mt-2"
+                        className="w-full border p-2 rounded-md focus:ring focus:ring-blue-300"
                     />
-                    <div className="flex justify-end mt-4">
-                        <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-500 text-white rounded-md mr-2">Cancel</button>
+    
+                    {/* Buttons */}
+                    <div className="flex flex-wrap justify-end gap-2 mt-4">
+                        <button 
+                            type="button" 
+                            onClick={onClose} 
+                            className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition"
+                        >
+                            Cancel
+                        </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-blue-500 text-white rounded-md"
+                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? 'Creating...' : 'Create Agent'}
@@ -105,6 +118,7 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
             </div>
         </div>
     );
+    
 };
 
 export default CreateAgentModal;
