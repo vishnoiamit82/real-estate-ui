@@ -263,27 +263,14 @@ const PropertyForm = () => {
 
         <div className="container mx-auto p-4 max-w-3xl sm:max-w-6xl">
 
-            {/* reate Property Header Section */}
-            <div className="container mx-auto p-4 max-w-3xl sm:max-w-6xl">
-        <h2 className="text-xl sm:text-2xl font-semibold bg-green-500 text-white px-4 py-2 rounded-lg inline-flex items-center">
-            <PlusCircle className="w-5 h-5 mr-2 text-white" />
-            Let's Create Property !
-        </h2>
+            <h2 className="text-2xl font-bold mb-6">Create Property</h2>
 
-
-
-                {/* Success Message */}
-                {successMessage && (
-                    <p className="mt-4 text-md text-green-700 bg-green-50 p-3 rounded-md border-l-4 border-green-500 shadow-sm">
-                        ✅ {successMessage}
-                    </p>
-                )}
-            </div>
-
-
-
-
-
+            {/* Success Message */}
+            {successMessage && (
+                <p className="mt-4 text-md text-green-700 bg-green-50 p-3 rounded-md border-l-4 border-green-500 shadow-sm">
+                    ✅ {successMessage}
+                </p>
+            )}
 
             {/* Agent Information Section */}
             <div className="mt-6 p-6 bg-white border rounded-lg shadow-lg w-full max-w-6xl mx-auto">
