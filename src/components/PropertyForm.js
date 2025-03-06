@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axiosInstance from '../axiosInstance';
 import CreateAgentModal from './CreateAgentModal';
 import { useNavigate } from 'react-router-dom';
+import { PlusCircle } from 'lucide-react';
 
 const PropertyForm = () => {
     const [formData, setFormData] = useState({
@@ -72,7 +73,7 @@ const PropertyForm = () => {
             { key: "rental", label: "🏠 Rental Price", type: "text" },
             { key: "rentalYield", label: "📈 Rental Yield", type: "text" },
             { key: "councilRate", label: "🏛️ Council Rate", type: "text" }
-            
+
         ],
         "Property Details": [
             { key: "bedrooms", label: "🛏️ Bedrooms", type: "number" },
@@ -84,14 +85,14 @@ const PropertyForm = () => {
             { key: "nearbySchools", label: "🏫 Nearby Schools", type: "array" },
             { key: "publicTransport", label: "🚌 Public Transport", type: "array" }
         ]
-        
+
     };
 
     // { key: "insurance", label: "🛡️ Insurance", type: "text" }
 
     // { key: "floodZone", label: "🌊 Flood Zone", type: "text" },
     //         { key: "bushfireZone", label: "🔥 Bushfire Zone", type: "text" },
-    
+
     // "Due Diligence": [
     //         { key: "dueDiligence.insurance", label: "🛡️ Insurance Status", type: "dropdown", options: ["pending", "completed", "failed"] },
     //         { key: "dueDiligence.floodZone", label: "🌊 Flood Zone Status", type: "dropdown", options: ["pending", "completed", "failed"] },
@@ -259,20 +260,30 @@ const PropertyForm = () => {
 
     return (
 
-        <div className="container mx-auto p-4">
+
+        <div className="container mx-auto p-4 max-w-3xl sm:max-w-6xl">
+
             {/* Create Property Header Section */}
-            <div className="mt-6 p-6 bg-white border rounded-lg shadow-lg w-full max-w-6xl mx-auto">
-                <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-                    🏡 Create Property
-                </h2>
+            <div className="container mx-auto p-4 max-w-3xl sm:max-w-6xl">
+    <h2 className="text-xl sm:text-2xl font-semibold bg-green-500 text-white px-4 py-2 rounded-lg inline-flex items-center">
+        <PlusCircle className="w-5 h-5 mr-2 text-white" />
+        Create Property
+    </h2>
+
+
 
                 {/* Success Message */}
                 {successMessage && (
-                    <p className="mt-4 text-lg text-green-700 bg-green-100 p-3 rounded-md border-l-4 border-green-500">
+                    <p className="mt-4 text-md text-green-700 bg-green-50 p-3 rounded-md border-l-4 border-green-500 shadow-sm">
                         ✅ {successMessage}
                     </p>
                 )}
             </div>
+
+
+
+
+
 
             {/* Agent Information Section */}
             <div className="mt-6 p-6 bg-white border rounded-lg shadow-lg w-full max-w-6xl mx-auto">
@@ -345,25 +356,25 @@ const PropertyForm = () => {
                     <button
                         type="button"
                         onClick={() => setIsCollapsed(!isCollapsed)}
-                        className="text-blue-500 hover:text-blue-700 text-sm font-semibold flex items-center gap-2"
+                        className="flex items-center gap-2 text-blue-500 hover:text-blue-700 text-sm font-semibold transition-all"
                     >
-                        {isCollapsed ? "🔽 View Description" : "🔼 Hide Description"}
+                        <span>{isCollapsed ? "View Description" : "Hide Description"}</span>
+                        <span className={`transform transition-transform ${isCollapsed ? "rotate-0" : "rotate-180"}`}>
+                            ⌄
+                        </span>
                     </button>
+
 
                     {/* Show Description Only When Expanded */}
                     {!isCollapsed && (
                         <>
-                            <p className="text-gray-600 mb-3 text-center sm:text-left">
-                                Copy and paste the property description from an agent email, real estate website, or any other source.
-                                The AI will extract the relevant details and populate the form automatically.
-                            </p>
 
                             {/* Textarea for Property Description */}
                             <textarea
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300 hover:shadow-md transition"
-                                placeholder="Paste the property description here..."
+                                placeholder="Copy and paste the property description from an agent email, real estate website, or any other source.The magic will extract the relevant details and populate the property details for you."
                                 rows="5"
                             ></textarea>
 
@@ -392,119 +403,119 @@ const PropertyForm = () => {
                         </p>
                     )}
                 </div>
-                {showForm && (    
-                <div className="mt-6 p-6 bg-white border rounded-lg shadow-lg w-full max-w-6xl mx-auto">
-                    {Object.entries(propertySchemaFields).map(([section, fields]) => (
-                        <div key={section} className="mt-6">
-                            <h3 className="text-xl font-semibold mb-4 border-b-2 pb-2">{section}</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {fields.map(({ key, label, type, options }) => (
-                                    <div key={key} className="mb-4">
-                                        <label className="block mb-1 font-medium">{label}:</label>
+                {showForm && (
+                    <div className="mt-6 p-6 bg-white border rounded-lg shadow-lg w-full max-w-6xl mx-auto">
+                        {Object.entries(propertySchemaFields).map(([section, fields]) => (
+                            <div key={section} className="mt-6">
+                                <h3 className="text-xl font-semibold mb-4 border-b-2 pb-2">{section}</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {fields.map(({ key, label, type, options }) => (
+                                        <div key={key} className="mb-4">
+                                            <label className="block mb-1 font-medium">{label}:</label>
 
-                                        {/* Text & Number Inputs */}
-                                        {type === "text" || type === "number" ? (
-                                            <input
-                                                type={type}
-                                                name={key}
-                                                value={formData[key] || ""}
-                                                onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-                                                className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300 hover:shadow-md"
-                                            />
-                                        ) : null}
+                                            {/* Text & Number Inputs */}
+                                            {type === "text" || type === "number" ? (
+                                                <input
+                                                    type={type}
+                                                    name={key}
+                                                    value={formData[key] || ""}
+                                                    onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                                                    className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300 hover:shadow-md"
+                                                />
+                                            ) : null}
 
-                                        {/* Boolean Fields as Toggle */}
-                                        {type === "boolean" ? (
-                                            <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg shadow-sm">
-                                                {/* Badge for On/Off Market */}
-                                                <span className={`px-3 py-1 text-sm font-semibold rounded-md 
+                                            {/* Boolean Fields as Toggle */}
+                                            {type === "boolean" ? (
+                                                <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg shadow-sm">
+                                                    {/* Badge for On/Off Market */}
+                                                    <span className={`px-3 py-1 text-sm font-semibold rounded-md 
                                         ${formData[key] ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
-                                                    {formData[key] ? "Off Market" : "On Market"}
-                                                </span>
+                                                        {formData[key] ? "Off Market" : "On Market"}
+                                                    </span>
 
-                                                {/* Toggle Switch */}
-                                                <label className="flex items-center cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={formData[key] || false}
-                                                        onChange={() => setFormData({
-                                                            ...formData,
-                                                            [key]: !formData[key] // ✅ Toggle boolean value
-                                                        })}
-                                                        className="hidden"
-                                                    />
-                                                    <div className="relative w-12 h-6 bg-gray-300 rounded-full transition">
-                                                        <div className={`absolute left-1 top-1 w-4 h-4 rounded-full transition-all duration-300
-                                                ${formData[key] ? "translate-x-6 bg-red-500" : "translate-x-0 bg-green-500"}`}>
-                                                        </div>
-                                                    </div>
-                                                </label>
-                                            </div>
-                                        ) : null}
-
-                                        {/* Dropdown Inputs */}
-                                        {type === "dropdown" ? (
-                                            <select
-                                                name={key}
-                                                value={formData[key] || ""}
-                                                onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-                                                className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300 hover:shadow-md"
-                                            >
-                                                <option value="">Select</option>
-                                                {options.map((option) => (
-                                                    <option key={option} value={option}>
-                                                        {option}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        ) : null}
-
-                                        {/* Array Inputs */}
-                                        {type === "array" ? (
-                                            <div className="space-y-2">
-                                                {(formData[key] || []).map((item, index) => (
-                                                    <div key={index} className="flex items-center gap-2">
+                                                    {/* Toggle Switch */}
+                                                    <label className="flex items-center cursor-pointer">
                                                         <input
-                                                            type="text"
-                                                            value={item}
-                                                            onChange={(e) => {
-                                                                const updatedArray = [...formData[key]];
-                                                                updatedArray[index] = e.target.value;
-                                                                setFormData({ ...formData, [key]: updatedArray });
-                                                            }}
-                                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
+                                                            type="checkbox"
+                                                            checked={formData[key] || false}
+                                                            onChange={() => setFormData({
+                                                                ...formData,
+                                                                [key]: !formData[key] // ✅ Toggle boolean value
+                                                            })}
+                                                            className="hidden"
                                                         />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const updatedArray = [...formData[key]];
-                                                                updatedArray.splice(index, 1);
-                                                                setFormData({ ...formData, [key]: updatedArray });
-                                                            }}
-                                                            className="text-red-500 hover:text-red-700"
-                                                        >
-                                                            ❌
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, [key]: [...(formData[key] || []), ""] })}
-                                                    className="text-blue-500 hover:text-blue-700 font-medium"
+                                                        <div className="relative w-12 h-6 bg-gray-300 rounded-full transition">
+                                                            <div className={`absolute left-1 top-1 w-4 h-4 rounded-full transition-all duration-300
+                                                ${formData[key] ? "translate-x-6 bg-red-500" : "translate-x-0 bg-green-500"}`}>
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            ) : null}
+
+                                            {/* Dropdown Inputs */}
+                                            {type === "dropdown" ? (
+                                                <select
+                                                    name={key}
+                                                    value={formData[key] || ""}
+                                                    onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                                                    className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300 hover:shadow-md"
                                                 >
-                                                    ➕ Add More
-                                                </button>
-                                            </div>
-                                        ) : null}
-                                    </div>
-                                ))}
+                                                    <option value="">Select</option>
+                                                    {options.map((option) => (
+                                                        <option key={option} value={option}>
+                                                            {option}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            ) : null}
+
+                                            {/* Array Inputs */}
+                                            {type === "array" ? (
+                                                <div className="space-y-2">
+                                                    {(formData[key] || []).map((item, index) => (
+                                                        <div key={index} className="flex items-center gap-2">
+                                                            <input
+                                                                type="text"
+                                                                value={item}
+                                                                onChange={(e) => {
+                                                                    const updatedArray = [...formData[key]];
+                                                                    updatedArray[index] = e.target.value;
+                                                                    setFormData({ ...formData, [key]: updatedArray });
+                                                                }}
+                                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const updatedArray = [...formData[key]];
+                                                                    updatedArray.splice(index, 1);
+                                                                    setFormData({ ...formData, [key]: updatedArray });
+                                                                }}
+                                                                className="text-red-500 hover:text-red-700"
+                                                            >
+                                                                ❌
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, [key]: [...(formData[key] || []), ""] })}
+                                                        className="text-blue-500 hover:text-blue-700 font-medium"
+                                                    >
+                                                        ➕ Add More
+                                                    </button>
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                
+                        ))}
 
 
-                </div>
+
+                    </div>
                 )}
                 {showForm && (
                     <div className="mt-4 p-6  w-full max-w-6xl mx-auto">
@@ -515,23 +526,24 @@ const PropertyForm = () => {
                             Create Property
                         </button>
                         {/* Success Message (Now Below Button) */}
-                       {/* Success & Error Messages */}
-                    {successMessage && (
-                        <p className="mt-4 text-lg text-green-700 bg-green-100 p-3 rounded-md border-l-4 border-green-500">
-                            ✅ {successMessage}
-                        </p>
-                    )}
+                        {/* Success & Error Messages */}
+                        {successMessage && (
+                            <p className="mt-4 text-lg text-green-700 bg-green-100 p-3 rounded-md border-l-4 border-green-500">
+                                ✅ {successMessage}
+                            </p>
+                        )}
 
-                    {message && (
-                        <p className="mt-4 text-lg text-red-700 bg-red-100 p-3 rounded-md border-l-4 border-red-500">
-                            {message}
-                        </p>
-                    )}
+                        {message && (
+                            <p className="mt-4 text-lg text-red-700 bg-red-100 p-3 rounded-md border-l-4 border-red-500">
+                                {message}
+                            </p>
+                        )}
                     </div>
                 )}
 
             </form>
         </div>
+
     );
 };
 
