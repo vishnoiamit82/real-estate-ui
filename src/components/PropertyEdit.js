@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../axiosInstance';
+import PropertyFields from "./PropertyFields";
 
 const PropertyEdit = () => {
     const { id } = useParams();
@@ -28,6 +29,9 @@ const PropertyEdit = () => {
     const [message, setMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [newConversation, setNewConversation] = useState(''); // For new conversation entry
+    const visibleSections = ["Basic Information", "Financial Information", "Property Details", "Due Diligence", "Additional Due Diligence"];
+    const [property, setProperty] = useState(null);
+
 
 
     useEffect(() => {
@@ -36,6 +40,8 @@ const PropertyEdit = () => {
                 const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`);
                 const propertyData = response.data;
                 setFormData(propertyData);
+                setProperty(propertyData);
+
 
                 if (!propertyData.conversation) {
                     propertyData.conversation = [];
@@ -93,25 +99,38 @@ const PropertyEdit = () => {
     };
 
     const handleSubmit = async (e) => {
-
-        if (newConversation.trim() !== '') {
-            const newConvObj = {
-                timestamp: new Date().toISOString(),
-                content: newConversation.trim(),
-            };
-            formData.conversation.push(newConvObj);
-        }
-
         e.preventDefault();
+    
+        // ✅ Extract Due Diligence Data Separately
+        const { dueDiligence, ...propertyData } = formData;
+    
+        // ✅ Remove duplicate fields from propertyData (avoids sending `dueDiligence.insurance`)
+        Object.keys(dueDiligence).forEach(key => {
+            if (propertyData.hasOwnProperty(`dueDiligence.${key}`)) {
+                delete propertyData[`dueDiligence.${key}`];
+            }
+        });
+    
         try {
-            await axiosInstance.put(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`, formData);
-            setSuccessMessage('Property updated successfully!');
-            navigate(`/properties/${id}`);
+            // ✅ Update Due Diligence Separately (PATCH)
+            if (dueDiligence) {
+                await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}/due-diligence`, {
+                    dueDiligence
+                });
+            }
+    
+            // ✅ Update Remaining Property Data (PUT)
+            await axiosInstance.put(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`, propertyData);
+    
+            setSuccessMessage("Property updated successfully!");
+            // navigate(`/properties/${id}`);
+    
         } catch (error) {
-            console.error('Error updating property:', error);
-            setMessage('Failed to update property.');
+            console.error("Error updating property:", error);
+            setMessage("Failed to update property.");
         }
     };
+    
 
     const handleConversationChange = (e) => {
         const lines = e.target.value.split('\n').filter((line) => line.trim() !== '');
@@ -137,146 +156,49 @@ const PropertyEdit = () => {
             {message && <p className="mb-4 text-red-600 bg-red-100 p-2 rounded">{message}</p>}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Basic Information */}
-                <div className="border rounded-md p-4 bg-gray-50">
-                    <h3 className="text-lg font-bold mb-4">Basic Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block mb-2">Address:</label>
-                            <input
-                                type="text"
-                                name="address"
-                                value={formData.address}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block mb-2">Property Link:</label>
-                            <input
-                                type="url"
-                                name="propertyLink"
-                                value={formData.propertyLink}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
-                        <div>
-                            <label className="block mb-2">Offer Closing Date:</label>
-                            <input
-                                type="date"
-                                name="offerClosingDate"
-                                value={formData.offerClosingDate}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded-md"
 
-                            />
-                        </div>
-                        <div>
-                            <label className="block mb-2">Status:</label>
-                            <select
-                                name="currentStatus"
-                                value={formData.currentStatus}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            >
-                                <option value="available">Available</option>
-                                <option value="sold">Sold</option>
-                            </select>
-                        </div>
-                    </div>
+                <div className="mt-6 p-6 bg-white border rounded-lg shadow-lg w-full max-w-6xl mx-auto">
+                <PropertyFields 
+                    formData={formData} 
+                    setFormData={setFormData} 
+                    visibleSections={visibleSections} 
+                    readOnly={false} // ✅ Edit mode (Editable)
+                    propertyId={property?._id}  // ✅ Pass propertyId safely
+                    createdBy={property?.createdBy} // ✅ Pass createdBy safely
+                />
+
+
                 </div>
 
-                {/* Financial Information */}
-                <div className="border rounded-md p-4 bg-gray-50">
-                    <h3 className="text-lg font-bold mb-4">Financial Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block mb-2">Asking Price:</label>
-                            <input
-                                type="text"
-                                name="askingPrice"
-                                value={formData.askingPrice}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
-                        <div>
-                            <label className="block mb-2">Rental:</label>
-                            <input
-                                type="text"
-                                name="rental"
-                                value={formData.rental}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
-                        <div>
-                            <label className="block mb-2">Rental Yield:</label>
-                            <input
-                                type="text"
-                                name="rentalYield"
-                                value={formData.rentalYield}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
-                        <div>
-                            <label className="block mb-2">Council Rate:</label>
-                            <input
-                                type="text"
-                                name="councilRate"
-                                value={formData.councilRate}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
-                        <div>
-                            <label className="block mb-2">Insurance:</label>
-                            <input
-                                type="text"
-                                name="insurance"
-                                value={formData.insurance}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
-                    </div>
+
+                <div className="mt-4 p-6  w-full max-w-6xl mx-auto">
+                    <button
+                        type="submit"
+                        className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                    >
+                        Save Property
+                    </button>
+                    {/* Success Message (Now Below Button) */}
+                    {/* Success & Error Messages */}
+                    {successMessage && (
+                        <p className="mt-4 text-lg text-green-700 bg-green-100 p-3 rounded-md border-l-4 border-green-500">
+                            ✅ {successMessage}
+                        </p>
+                    )}
+
+                    {message && (
+                        <p className="mt-4 text-lg text-red-700 bg-red-100 p-3 rounded-md border-l-4 border-red-500">
+                            {message}
+                        </p>
+                    )}
                 </div>
 
-                {/* Zoning Information */}
-                <div className="border rounded-md p-4 bg-gray-50">
-                    <h3 className="text-lg font-bold mb-4">Zoning Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block mb-2">Flood Zone:</label>
-                            <input
-                                type="text"
-                                name="floodZone"
-                                value={formData.floodZone}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
-                        <div>
-                            <label className="block mb-2">Bushfire Zone:</label>
-                            <input
-                                type="text"
-                                name="bushfireZone"
-                                value={formData.bushfireZone}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
-                    </div>
-                </div>
 
                 {/* Conversations Section */}
-                <div className="border rounded-md p-4 bg-gray-50">
+                {/* <div className="border rounded-md p-4 bg-gray-50">
                     <h3 className="text-lg font-bold mb-4">Conversations</h3>
 
-                    {/* Read-Only Existing Conversations */}
+                   
                     <div className="mb-4">
                         <label className="block mb-2">Existing Conversations:</label>
                         <textarea
@@ -289,7 +211,7 @@ const PropertyEdit = () => {
                         ></textarea>
                     </div>
 
-                    {/* New Conversation Input */}
+                   
                     <div>
                         <label className="block mb-2">Add New Conversation:</label>
                         <textarea
@@ -301,12 +223,12 @@ const PropertyEdit = () => {
                             placeholder="Add new conversation (message only)"
                         ></textarea>
                     </div>
-                </div>
+                </div> */}
 
 
 
                 {/* Agent Information */}
-                <div className="border rounded-md p-4 bg-gray-50">
+                {/* <div className="border rounded-md p-4 bg-gray-50">
                     <h3 className="text-lg font-bold mb-4">Agent Information</h3>
                     <div>
                         <label className="block mb-2">Search Agent:</label>
@@ -331,15 +253,15 @@ const PropertyEdit = () => {
                             </ul>
                         )}
                     </div>
-                </div>
+                </div> */}
 
                 {/* Submit Button */}
-                <button
+                {/* <button
                     type="submit"
                     className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
                 >
                     Save Changes
-                </button>
+                </button> */}
             </form>
         </div>
     );

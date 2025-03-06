@@ -3,6 +3,7 @@ import axiosInstance from '../axiosInstance';
 import CreateAgentModal from './CreateAgentModal';
 import { useNavigate } from 'react-router-dom';
 import { PlusCircle } from 'lucide-react';
+import PropertyFields from "./PropertyFields";
 
 const PropertyForm = () => {
     const [formData, setFormData] = useState({
@@ -37,6 +38,8 @@ const PropertyForm = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [showForm, setShowForm] = useState(false);
+    const visibleSections = ["Basic Information", "Financial Information", "Property Details"];
+
 
 
     const navigate = useNavigate(); // ✅ Initialize navigation
@@ -392,115 +395,12 @@ const PropertyForm = () => {
                 </div>
                 {showForm && (
                     <div className="mt-6 p-6 bg-white border rounded-lg shadow-lg w-full max-w-6xl mx-auto">
-                        {Object.entries(propertySchemaFields).map(([section, fields]) => (
-                            <div key={section} className="mt-6">
-                                <h3 className="text-xl font-semibold mb-4 border-b-2 pb-2">{section}</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {fields.map(({ key, label, type, options }) => (
-                                        <div key={key} className="mb-4">
-                                            <label className="block mb-1 font-medium">{label}:</label>
 
-                                            {/* Text & Number Inputs */}
-                                            {type === "text" || type === "number" ? (
-                                                <input
-                                                    type={type}
-                                                    name={key}
-                                                    value={formData[key] || ""}
-                                                    onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-                                                    className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300 hover:shadow-md"
-                                                />
-                                            ) : null}
-
-                                            {/* Boolean Fields as Toggle */}
-                                            {type === "boolean" ? (
-                                                <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg shadow-sm">
-                                                    {/* Badge for On/Off Market */}
-                                                    <span className={`px-3 py-1 text-sm font-semibold rounded-md 
-                                        ${formData[key] ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
-                                                        {formData[key] ? "Off Market" : "On Market"}
-                                                    </span>
-
-                                                    {/* Toggle Switch */}
-                                                    <label className="flex items-center cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={formData[key] || false}
-                                                            onChange={() => setFormData({
-                                                                ...formData,
-                                                                [key]: !formData[key] // ✅ Toggle boolean value
-                                                            })}
-                                                            className="hidden"
-                                                        />
-                                                        <div className="relative w-12 h-6 bg-gray-300 rounded-full transition">
-                                                            <div className={`absolute left-1 top-1 w-4 h-4 rounded-full transition-all duration-300
-                                                ${formData[key] ? "translate-x-6 bg-red-500" : "translate-x-0 bg-green-500"}`}>
-                                                            </div>
-                                                        </div>
-                                                    </label>
-                                                </div>
-                                            ) : null}
-
-                                            {/* Dropdown Inputs */}
-                                            {type === "dropdown" ? (
-                                                <select
-                                                    name={key}
-                                                    value={formData[key] || ""}
-                                                    onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-                                                    className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300 hover:shadow-md"
-                                                >
-                                                    <option value="">Select</option>
-                                                    {options.map((option) => (
-                                                        <option key={option} value={option}>
-                                                            {option}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            ) : null}
-
-                                            {/* Array Inputs */}
-                                            {type === "array" ? (
-                                                <div className="space-y-2">
-                                                    {(formData[key] || []).map((item, index) => (
-                                                        <div key={index} className="flex items-center gap-2">
-                                                            <input
-                                                                type="text"
-                                                                value={item}
-                                                                onChange={(e) => {
-                                                                    const updatedArray = [...formData[key]];
-                                                                    updatedArray[index] = e.target.value;
-                                                                    setFormData({ ...formData, [key]: updatedArray });
-                                                                }}
-                                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const updatedArray = [...formData[key]];
-                                                                    updatedArray.splice(index, 1);
-                                                                    setFormData({ ...formData, [key]: updatedArray });
-                                                                }}
-                                                                className="text-red-500 hover:text-red-700"
-                                                            >
-                                                                ❌
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setFormData({ ...formData, [key]: [...(formData[key] || []), ""] })}
-                                                        className="text-blue-500 hover:text-blue-700 font-medium"
-                                                    >
-                                                        ➕ Add More
-                                                    </button>
-                                                </div>
-                                            ) : null}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-
-
+                <PropertyFields 
+                formData={formData} 
+                setFormData={setFormData} 
+                visibleSections={visibleSections} 
+                />
 
                     </div>
                 )}

@@ -36,21 +36,31 @@ const DueDiligenceChecklist = ({ propertyId, createdBy }) => {
     };
 
     // ✅ Update Due Diligence (Only if current user is the property creator)
-    const updateDueDiligence = async (check, status) => {
-        if (!currentUser || currentUser._id !== createdBy) {
-            alert("You are not authorized to update this property.");
-            return;
-        }
-        try {
-            await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/properties/${propertyId}/due-diligence`, {
-                [check]: status
-            });
-            setDueDiligence({ ...dueDiligence, [check]: status });
-        } catch (error) {
-            console.error('Error updating due diligence:', error);
-            setError('Failed to update due diligence.');
-        }
-    };
+const updateDueDiligence = async (check, status) => {
+    if (!currentUser || currentUser._id !== createdBy) {
+        alert("You are not authorized to update this property.");
+        return;
+    }
+
+    try {
+        const updatedDueDiligence = {
+            ...dueDiligence,
+            [check]: status,  // ✅ Update only the specific field
+        };
+
+        await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/properties/${propertyId}/due-diligence`, {
+            dueDiligence: updatedDueDiligence // ✅ Send the full dueDiligence object
+        });
+
+        // ✅ Update local state
+        setDueDiligence(updatedDueDiligence);
+
+    } catch (error) {
+        console.error('Error updating due diligence:', error);
+        setError('Failed to update due diligence.');
+    }
+};
+
 
     // ✅ Update Additional Due Diligence Checks
     const updateAdditionalCheck = async (index, field, value) => {

@@ -1,21 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../axiosInstance';
-import DueDiligenceChecklist from './DueDiligenceChecklist'
+import DueDiligenceChecklist from './DueDiligenceChecklist';
+import PropertyFields from "./PropertyFields"; // ✅ Import PropertyFields
 
 const PropertyDetail = () => {
     const { id } = useParams(); // Get the property ID from the URL
     const navigate = useNavigate();
+    
+    // ✅ Define formData state
+    const [formData, setFormData] = useState({});
     const [property, setProperty] = useState(null);
     const [message, setMessage] = useState('');
     const [smsMessage, setSmsMessage] = useState('');
     const [smsStatus, setSmsStatus] = useState('');
+    
+    const visibleSections = ["Basic Information", "Financial Information", "Property Details", "Due Diligence", "Additional Due Diligence"];
 
     useEffect(() => {
         const fetchProperty = async () => {
             try {
                 const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`);
                 setProperty(response.data);
+                setFormData(response.data); // ✅ Set initial formData from property details
             } catch (error) {
                 console.error('Error fetching property:', error);
                 setMessage('Failed to load property details.');
@@ -65,65 +72,19 @@ const PropertyDetail = () => {
 
             {message && <p className={`text-${message.includes('successfully') ? 'green' : 'red'}-600`}>{message}</p>}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-4 border rounded-md bg-gray-50">
-                    <h3 className="text-xl font-semibold mb-2">Property Details</h3>
-                    <p><strong>Address:</strong> {property.address}</p>
-                    <p><strong>Property Type:</strong> {property.propertyType}</p>
-                    <p><strong>Bedrooms:</strong> {property.bedrooms}</p>
-                    <p><strong>Bathrooms:</strong> {property.bathrooms}</p>
-                    <p><strong>Car Spaces:</strong> {property.carSpaces}</p>
-                    <p><strong>Land Size:</strong> {property.landSize}</p>
-                    <p><strong>Year Built:</strong> {property.yearBuilt}</p>
-                    <p><strong>Market Trends:</strong> {property.marketTrends}</p>
-                </div>
+            {/* ✅ Pass formData & setFormData */}
+            <PropertyFields 
+                formData={formData} 
+                setFormData={setFormData} 
+                visibleSections={visibleSections} 
+                readOnly={true} // ✅ View mode (Read-Only)
+            />
 
-                <div className="p-4 border rounded-md bg-gray-50">
-                    <h3 className="text-xl font-semibold mb-2">Financial Information</h3>
-                    <p><strong>Asking Price:</strong> {property.askingPrice || 'N/A'}</p>
-                    <p><strong>Rental:</strong> {property.rental || 'N/A'}</p>
-                    <p><strong>Yield:</strong> {property.rentalYield || 'N/A'}</p>
-                    <p><strong>Council Rate:</strong> {property.councilRate || 'N/A'}</p>
-                    <p><strong>Insurance:</strong> {property.insurance || 'N/A'}</p>
-                </div>
-            </div>
 
-            <div className="p-4 border rounded-md bg-gray-50">
-                <h3 className="text-xl font-semibold mb-2">Property Features</h3>
-                {property.features?.length > 0 ? (
-                    <ul className="list-disc pl-5">{property.features.map((feat, idx) => <li key={idx}>{feat}</li>)}</ul>
-                ) : <p>N/A</p>}
-            </div>
-
-            {/* Zoning Information */}
-            <div className="p-4 border rounded-md bg-gray-50">
-                <h3 className="text-xl font-semibold mb-2">Zoning Information</h3>
-                <p><strong>Flood Zone:</strong> {property.floodZone || 'N/A'}</p>
-                <p><strong>Bushfire Zone:</strong> {property.bushfireZone || 'N/A'}</p>
-                <p><strong>Zoning Type:</strong> {property.zoningType || 'N/A'}</p>
-            </div>
-
-            {/* Integrate Due Diligence Checklist */}
-            <DueDiligenceChecklist propertyId={property._id} createdBy={property.createdBy._id} />
-
-            {/* <div className="p-4 border rounded-md bg-gray-50">
-                <h3 className="text-xl font-semibold mb-2">Conversations</h3>
-                <div className="h-40 overflow-y-auto border p-2 rounded-md bg-white">
-                    {property.conversation?.length > 0 ? property.conversation.map((conv, idx) => (
-                        <p key={idx}><strong>{new Date(conv.timestamp).toLocaleString()}:</strong> {conv.content}</p>
-                    )) : <p>No conversations yet.</p>}
-                </div>
-            </div>
-
-            <div className="p-4 border rounded-md bg-gray-50">
-                <h3 className="text-xl font-semibold mb-2">Follow-Up Tasks</h3>
-                {property.followUpTasks?.length > 0 ? (
-                    <ul className="list-disc pl-5">
-                        {property.followUpTasks.map((task, idx) => (
-                            <li key={idx}><strong>{task.task}</strong> - Due: {task.followUpDate ? new Date(task.followUpDate).toLocaleDateString() : 'N/A'} ({task.reason})</li>
-                        ))}
-                    </ul>
-                ) : <p>No follow-up tasks assigned.</p>}
+            {/* Integrate Due Diligence Checklist
+            <div id="due-diligence">
+                <h2 className="text-2xl font-semibold mb-4">Due Diligence Checklist</h2>
+                <DueDiligenceChecklist propertyId={property._id} createdBy={property.createdBy._id} />
             </div> */}
         </div>
     );

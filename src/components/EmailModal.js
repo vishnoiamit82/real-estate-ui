@@ -34,6 +34,19 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
             console.error('Error checking due diligence:', error);
         }
     };
+
+    // ✅ Scroll to the section based on URL hash when page loads
+    useEffect(() => {
+        const hash = window.location.hash.substring(1); // Get hash without "#"
+        if (hash) {
+            setTimeout(() => {
+                const section = document.getElementById(hash);
+                if (section) {
+                    section.scrollIntoView({ behavior: "smooth" });
+                }
+            }, 500); // Delay ensures the content is rendered before scrolling
+        }
+    }, []);
     
 
     // Load CC email after mount
@@ -134,7 +147,7 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
                     <div className="bg-yellow-100 text-yellow-700 p-3 rounded-md mt-3">
                         <p><strong>Due Diligence Required:</strong> Please complete all due diligence checks before sending this offer email.</p>
                         <Link 
-                            to={`/properties/${property._id}#due-diligence`} 
+                            to={`/edit-property/${property._id}#due-diligence`} 
                             className="text-blue-500 underline hover:text-blue-700"
                         >
                             Go to Due Diligence Section
