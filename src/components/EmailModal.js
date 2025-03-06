@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axiosInstance from '../axiosInstance';
+import { Link } from 'react-router-dom';
 
 const EmailModal = ({ property, agent, templates, onClose }) => {
     const [selectedTemplate, setSelectedTemplate] = useState('');
@@ -9,11 +10,30 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
     const [ccEmail, setCcEmail] = useState('');
     const [toEmail, setToEmail] = useState(agent.email || '');
     const messageRef = useRef(null);
+    
 
     useEffect(() => {
         document.body.classList.add("modal-open");
         return () => document.body.classList.remove("modal-open");
     }, []);
+
+    const [isDueDiligenceRequired, setIsDueDiligenceRequired] = useState(false);
+    const [isDueDiligenceComplete, setIsDueDiligenceComplete] = useState(false);
+
+    useEffect(() => {
+        if (isDueDiligenceRequired) {
+            checkDueDiligence();
+        }
+    }, [isDueDiligenceRequired]);
+
+    const checkDueDiligence = async () => {
+        try {
+            const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/properties/${property._id}/due-diligence/validate`);
+            setIsDueDiligenceComplete(response.data.isComplete);
+        } catch (error) {
+            console.error('Error checking due diligence:', error);
+        }
+    };
     
 
     // Load CC email after mount
@@ -45,6 +65,8 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
             if (messageRef.current) {
                 messageRef.current.innerHTML = filledBody;
             }
+
+            setIsDueDiligenceRequired(template.type === 'offer');
         }
     };
 
@@ -72,6 +94,8 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
         }
     };
 
+
+
     // Handle file upload
     const handleFileUpload = (event) => {
         const files = event.target.files;
@@ -97,6 +121,26 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
 
                 {/* Property Address */}
                 <p className="text-gray-700 dark:text-gray-300"><strong>Property:</strong> {property.address}</p>
+
+                 {/* Due Diligence Completed Message */}
+                 {isDueDiligenceRequired && isDueDiligenceComplete && (
+                    <div className="bg-green-100 text-green-700 p-3 rounded-md mt-3">
+                        <p><strong>Due Diligence Completed:</strong> All required checks have been successfully completed. You can proceed with sending the offer email.</p>
+                    </div>
+                )}
+
+                {/* Due Diligence Warning (Only for Offer Emails) */}
+                {isDueDiligenceRequired && !isDueDiligenceComplete && (
+                    <div className="bg-yellow-100 text-yellow-700 p-3 rounded-md mt-3">
+                        <p><strong>Due Diligence Required:</strong> Please complete all due diligence checks before sending this offer email.</p>
+                        <Link 
+                            to={`/properties/${property._id}#due-diligence`} 
+                            className="text-blue-500 underline hover:text-blue-700"
+                        >
+                            Go to Due Diligence Section
+                        </Link>
+                    </div>
+                )}
 
                 {/* Template Selection */}
                 <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mt-4">Select Email Template:</label>
@@ -157,13 +201,16 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
                     >
                         Cancel
                     </button>
-                    <button
-                        onClick={handleSendEmail}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-                        disabled={isSending}
-                    >
-                        {isSending ? 'Sending...' : 'Send Email'}
-                    </button>
+
+                {/* Send Email Button */}
+                <button
+                    onClick={handleSendEmail}
+                    className={`px-4 py-2 text-white rounded-md ${isDueDiligenceRequired && !isDueDiligenceComplete ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500'}`}
+                    disabled={isDueDiligenceRequired && !isDueDiligenceComplete}
+                >
+                    {isDueDiligenceRequired && !isDueDiligenceComplete ? 'Complete Due Diligence First' : 'Send Email'}
+                </button>
+
                 </div>
             </div>
         </div>

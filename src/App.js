@@ -81,6 +81,7 @@ function App() {
                         <Route path="/edit-property/:id" element={<ProtectedRoute><PropertyEdit /></ProtectedRoute>} />
 
                         <Route path="/add-agent" element={<ProtectedRoute><AgentForm /></ProtectedRoute>} />
+                        <Route path="/agents/:id" element={<ProtectedRoute><AgentList /></ProtectedRoute>} />
                         <Route path="/edit-agent/:id" element={<ProtectedRoute><AgentForm /></ProtectedRoute>} />
                         <Route path="/client-briefs" element={<ProtectedRoute><ClientBriefDashboard /></ProtectedRoute>} />
                         <Route path="/client-briefs/add" element={<ProtectedRoute><ClientBriefForm /></ProtectedRoute>} />

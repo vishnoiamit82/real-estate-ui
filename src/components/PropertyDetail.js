@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../axiosInstance';
+import DueDiligenceChecklist from './DueDiligenceChecklist'
 
 const PropertyDetail = () => {
     const { id } = useParams(); // Get the property ID from the URL
@@ -102,7 +103,10 @@ const PropertyDetail = () => {
                 <p><strong>Zoning Type:</strong> {property.zoningType || 'N/A'}</p>
             </div>
 
-            <div className="p-4 border rounded-md bg-gray-50">
+            {/* Integrate Due Diligence Checklist */}
+            <DueDiligenceChecklist propertyId={property._id} createdBy={property.createdBy._id} />
+
+            {/* <div className="p-4 border rounded-md bg-gray-50">
                 <h3 className="text-xl font-semibold mb-2">Conversations</h3>
                 <div className="h-40 overflow-y-auto border p-2 rounded-md bg-white">
                     {property.conversation?.length > 0 ? property.conversation.map((conv, idx) => (
@@ -120,7 +124,7 @@ const PropertyDetail = () => {
                         ))}
                     </ul>
                 ) : <p>No follow-up tasks assigned.</p>}
-            </div>
+            </div> */}
         </div>
     );
 };

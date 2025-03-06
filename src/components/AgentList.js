@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../axiosInstance';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useParams } from 'react-router-dom';
 import { Edit, Trash2, PlusCircle, RefreshCw, ArrowUpDown } from 'lucide-react'; // Importing icons
 
 const AgentList = () => {
@@ -10,14 +10,32 @@ const AgentList = () => {
     const [loading, setLoading] = useState(true);
     const [sortField, setSortField] = useState('createdAt'); // Default sorting by createdAt
     const [sortOrder, setSortOrder] = useState('desc'); // Default to descending order
+    const { id } = useParams();
 
     const navigate = useNavigate();
+
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || "{}");
+
 
     // Fetch agents from backend
     useEffect(() => {
         const fetchAgents = async () => {
             try {
-                const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/agents`);
+                // const currentUser = localStorage.getItem('currentUser');
+                let response;
+                if (currentUser?.role === "admin") {
+                    // Admin can fetch all agents
+                    response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/agents`);
+                } else if (currentUser?.role === "property_sourcer" && id) {
+                    // Property Sourcer can fetch only their agent
+                    response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/agents/${id}`);
+                    setAgents([response.data]); // Store it as an array to keep the UI consistent
+                    return;
+                } else {
+                    setMessage({ text: 'Unauthorized to view this page.', type: 'error' });
+                    return;
+                }
+
                 setAgents(response.data);
             } catch (error) {
                 console.error('Error fetching agents:', error);
@@ -26,8 +44,9 @@ const AgentList = () => {
                 setLoading(false);
             }
         };
+
         fetchAgents();
-    }, []);
+    }, [id]);
 
     // Delete agent
     const deleteAgent = async (id) => {

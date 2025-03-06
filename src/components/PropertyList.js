@@ -21,7 +21,7 @@ const PropertyList = () => {
     const navigate = useNavigate();
     const [sortKey, setSortKey] = useState('createdAt'); // Default sort key
     const [sortOrder, setSortOrder] = useState('desc'); // Default sort order
-    const [filter, setFilter] = useState("all");
+    const [filter, setFilter] = useState("undecided");
     const indexOfLastProperty = currentPage * propertiesPerPage;
     const indexOfFirstProperty = indexOfLastProperty - propertiesPerPage;
     const [selectedProperty, setSelectedProperty] = useState(null);

@@ -37,7 +37,7 @@ const PropertyCardList = ({
                         {/* Property Title and Decision Status */}
                         <div className="flex justify-between items-center mb-2">
                             <h3 className="text-lg font-semibold truncate">{property.address || "N/A"}</h3>
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-md ${property.is_deleted ? 'bg-red-500 text-white' :
+                             <span className={`px-2 py-1 text-xs font-semibold rounded-md ${property.is_deleted ? 'bg-red-500 text-white' :
                                 property.decisionStatus === 'pursue' ? 'bg-green-500 text-white' :
                                 property.decisionStatus === 'on_hold' ? 'bg-yellow-500 text-white' :
                                 'bg-gray-500 text-white'}`}>
