@@ -71,8 +71,8 @@ const PropertyForm = () => {
             { key: "askingPrice", label: "💰 Asking Price", type: "text" },
             { key: "rental", label: "🏠 Rental Price", type: "text" },
             { key: "rentalYield", label: "📈 Rental Yield", type: "text" },
-            { key: "councilRate", label: "🏛️ Council Rate", type: "text" },
-            { key: "insurance", label: "🛡️ Insurance", type: "text" }
+            { key: "councilRate", label: "🏛️ Council Rate", type: "text" }
+            
         ],
         "Property Details": [
             { key: "bedrooms", label: "🛏️ Bedrooms", type: "number" },
@@ -86,6 +86,8 @@ const PropertyForm = () => {
         ]
         
     };
+
+    // { key: "insurance", label: "🛡️ Insurance", type: "text" }
 
     // { key: "floodZone", label: "🌊 Flood Zone", type: "text" },
     //         { key: "bushfireZone", label: "🔥 Bushfire Zone", type: "text" },
