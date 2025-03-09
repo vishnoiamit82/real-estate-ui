@@ -74,57 +74,57 @@ const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = fal
                             ))}
                         </div>
 
-                        {/* ✅ Render Additional Due Diligence Checks */}
-                        {section === "Additional Due Diligence" && (
-                            <div>
-                                {/* <h4 className="text-md font-bold mt-4">Additional Due Diligence</h4> */}
-                                {(formData.dueDiligence?.additionalChecks || []).map((check, index) => (
-                                    <div key={index} className="flex justify-between items-center mb-2">
-                                        <input
-                                            type="text"
-                                            value={check.name}
-                                            className="border p-1 rounded-md flex-1 mr-2"
-                                            readOnly
-                                        />
-                                        <select
-                                            value={check.status}
-                                            onChange={(e) => {
-                                                const updatedChecks = [...formData.dueDiligence.additionalChecks];
-                                                updatedChecks[index].status = e.target.value;
-                                                setFormData({ ...formData, dueDiligence: { ...formData.dueDiligence, additionalChecks: updatedChecks } });
-                                            }}
-                                            className="border p-1 rounded-md"
-                                            disabled={readOnly}
-                                        >
-                                            <option value="pending">Pending</option>
-                                            <option value="completed">Completed</option>
-                                            <option value="failed">Failed</option>
-                                        </select>
-                                    </div>
-                                ))}
+ {/* ✅ Render Additional Due Diligence Checks */}
+{section === "Additional Due Diligence" && (
+    <div>
+        {(formData.dueDiligence?.additionalChecks || []).map((check, index) => (
+            <div key={index} className="flex flex-col sm:flex-row items-center gap-2 mb-2">
+                <input
+                    type="text"
+                    value={check.name}
+                    className="border p-2 rounded-md w-full sm:flex-grow bg-gray-100"
+                    readOnly
+                />
+                <select
+                    value={check.status}
+                    onChange={(e) => {
+                        const updatedChecks = [...formData.dueDiligence.additionalChecks];
+                        updatedChecks[index].status = e.target.value;
+                        setFormData({ ...formData, dueDiligence: { ...formData.dueDiligence, additionalChecks: updatedChecks } });
+                    }}
+                    className="border p-2 rounded-md w-full sm:w-40"
+                    disabled={readOnly}
+                >
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                </select>
+            </div>
+        ))}
 
-                                {/* ✅ Add New Additional Check */}
-                                {!readOnly && (
-                                    <div className="mt-3 flex items-center gap-2">
-                                        <input
-                                            type="text"
-                                            placeholder="Enter new check"
-                                            value={newCheckName}
-                                            onChange={(e) => setNewCheckName(e.target.value)}
-                                            className="border p-2 rounded-md flex-grow"
-                                        />
-                                        <button
-                                            onClick={addNewCheck}
-                                            type = "button"
-                                            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-                                        >
-                                            Add Check
-                                        </button>
-                                    </div>
+        {/* ✅ Add New Additional Check (Aligned Properly) */}
+        {!readOnly && (
+            <div className="mt-3 flex flex-col sm:flex-row items-center gap-2 w-full">
+                <input
+                    type="text"
+                    placeholder="Enter new check"
+                    value={newCheckName}
+                    onChange={(e) => setNewCheckName(e.target.value)}
+                    className="border p-2 rounded-md w-full sm:flex-grow text-sm"
+                />
+                <button
+                    onClick={addNewCheck}
+                    type="button"
+                    className="w-full sm:w-40 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+                >
+                    Add Check
+                </button>
+            </div>
+        )}
+    </div>
+)}
 
-                                )}
-                            </div>
-                        )}
+
                     </div>
                 );
             })}
