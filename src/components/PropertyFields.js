@@ -77,7 +77,7 @@ const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = fal
                         {/* ✅ Render Additional Due Diligence Checks */}
                         {section === "Additional Due Diligence" && (
                             <div>
-                                <h4 className="text-md font-bold mt-4">Additional Due Diligence</h4>
+                                {/* <h4 className="text-md font-bold mt-4">Additional Due Diligence</h4> */}
                                 {(formData.dueDiligence?.additionalChecks || []).map((check, index) => (
                                     <div key={index} className="flex justify-between items-center mb-2">
                                         <input
