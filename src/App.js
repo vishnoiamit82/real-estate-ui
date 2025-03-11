@@ -24,6 +24,7 @@ import SharedPropertyPage from './components/SharedPropertyPage'
 import { jwtDecode } from 'jwt-decode';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
+import { setupAxiosInterceptors } from './services/axiosSetup';
 import { Outlet } from "react-router-dom";
 
 
@@ -31,6 +32,10 @@ import { Outlet } from "react-router-dom";
 function App() {
 
     const [currentUser, setCurrentUser] = useState(null);
+
+    useEffect(() => {
+        setupAxiosInterceptors();
+      }, []);
 
     useEffect(() => {
         const token = localStorage.getItem('authToken');
