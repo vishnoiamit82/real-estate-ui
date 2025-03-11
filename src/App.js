@@ -20,24 +20,27 @@ import SignupForm from './components/SignupForm';
 import UserManagement from './components/UserManagement';
 import LoginForm from './components/Loginform';
 import ProtectedRoute from './components/ProtectedRoute';
-import SharedPropertyPage from './components/SharedPropertyPage'
+import SharedPropertyPage from './components/SharedPropertyPage';
 import { jwtDecode } from 'jwt-decode';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
-import SpinnerOverlay from './components/SpinnerOverlay';
 import axiosInstance, { attachSpinnerInterceptor } from './axiosInstance';
-import { Outlet } from "react-router-dom";
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
 
+NProgress.configure({ showSpinner: true, trickleSpeed: 200 });
 
 
 function App() {
-
     const [currentUser, setCurrentUser] = useState(null);
-    const [loading, setLoading] = useState(false); 
 
     useEffect(() => {
-        attachSpinnerInterceptor(setLoading);
-      }, []);
+        attachSpinnerInterceptor(() => {
+            // Spinner via NProgress only
+            NProgress.start();
+            return () => NProgress.done();
+        });
+    }, []);
 
     useEffect(() => {
         const token = localStorage.getItem('authToken');
@@ -46,7 +49,6 @@ function App() {
                 const decodedUser = jwtDecode(token);
                 console.log('Decoded User on App Load:', decodedUser);
 
-                // Check if the token is expired
                 if (decodedUser.exp * 1000 < Date.now()) {
                     console.warn('Token expired. Redirecting to login...');
                     handleLogout();
@@ -60,8 +62,6 @@ function App() {
         }
     }, []);
 
-
-    // Handle user logout
     const handleLogout = () => {
         setCurrentUser(null);
         localStorage.setItem('currentUser', null);
@@ -74,20 +74,14 @@ function App() {
             <div className="flex flex-col min-h-screen">
                 <Header currentUser={currentUser} onLogout={handleLogout} />
 
-                {/* Main Content with Global Top Padding */}
-                <main className="flex-grow pt-20"> {/* Added pt-20 for padding below header */}
-                {loading && <SpinnerOverlay />}
+                <main className="flex-grow pt-20">
                     <Routes>
-                        {/* Public Routes */}
                         <Route path="/login" element={<LoginForm setCurrentUser={setCurrentUser} />} />
                         <Route path="/signup" element={<SignupForm />} />
-
-                        {/* Protected Routes for Authenticated Users */}
                         <Route path="/" element={<ProtectedRoute><PropertyList /></ProtectedRoute>} />
                         <Route path="/add-property" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
                         <Route path="/properties/:id" element={<ProtectedRoute><PropertyDetail /></ProtectedRoute>} />
                         <Route path="/edit-property/:id" element={<ProtectedRoute><PropertyEdit /></ProtectedRoute>} />
-
                         <Route path="/add-agent" element={<ProtectedRoute><AgentForm /></ProtectedRoute>} />
                         <Route path="/agents/:id" element={<ProtectedRoute><AgentList /></ProtectedRoute>} />
                         <Route path="/edit-agent/:id" element={<ProtectedRoute><AgentForm /></ProtectedRoute>} />
@@ -99,22 +93,11 @@ function App() {
                         <Route path="/cashflow-calculator" element={<ProtectedRoute><CashFlowCalculator /></ProtectedRoute>} />
                         <Route path="/template-management" element={<ProtectedRoute><EmailTemplateManagement /></ProtectedRoute>} />
                         <Route path="/email-replies" element={<ProtectedRoute><EmailReplies /></ProtectedRoute>} />
-
                         <Route path="/shared/:shareToken" element={<SharedPropertyPage />} />
                         <Route path="/forgot-password" element={<ForgotPassword />} />
                         <Route path="/reset-password/:token" element={<ResetPassword />} />
-
-                        {/* Admin-Only Protected Route */}
-                        <Route path="/user-management" element={
-                            <ProtectedRoute requiredRole="admin">
-                                <UserManagement />
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/agents" element={
-                            <ProtectedRoute requiredRole="admin">
-                                <AgentList />
-                            </ProtectedRoute>
-                        } />
+                        <Route path="/user-management" element={<ProtectedRoute requiredRole="admin"><UserManagement /></ProtectedRoute>} />
+                        <Route path="/agents" element={<ProtectedRoute requiredRole="admin"><AgentList /></ProtectedRoute>} />
                     </Routes>
                 </main>
 

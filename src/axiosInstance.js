@@ -1,11 +1,14 @@
 // src/api/axiosInstance.js
 import axios from 'axios';
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
 
 // Spinner tracking variables
 let activeRequests = 0;
+let startProgressTimeout = null;
 let spinnerStartTime = null;
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 let setGlobalLoading = null;
+
 
 // Create an Axios instance
 const axiosInstance = axios.create({
@@ -40,7 +43,18 @@ axiosInstance.interceptors.request.use(
     async (config) => {
         // Spinner logic
         activeRequests++;
-        if (setGlobalLoading) setGlobalLoading(true);
+
+        // Delay start to prevent flashing bar on fast requests
+        if (activeRequests === 1) {
+            startProgressTimeout = setTimeout(() => {
+            NProgress.start();
+          
+            }, 300);
+        }
+        // if (process.env.NODE_ENV === 'development') {
+        //     await new Promise((res) => setTimeout(res, 1500)); // force delay
+        // }
+
         spinnerStartTime = Date.now();
 
         // Authorization logic
@@ -67,39 +81,26 @@ axiosInstance.interceptors.request.use(
     },
     (error) => {
         activeRequests = Math.max(0, activeRequests - 1);
-        if (activeRequests === 0 && setGlobalLoading) setGlobalLoading(false);
-        console.error('Request Error:', error);
+        clearTimeout(startProgressTimeout);
+        if (activeRequests === 0) NProgress.done();
         return Promise.reject(error);
-    }
+      }
 );
 
 // Response interceptor (add spinner hide logic + auth error handling)
 axiosInstance.interceptors.response.use(
-    async (response) => {
-        activeRequests = Math.max(0, activeRequests - 1);
-        const elapsed = Date.now() - spinnerStartTime;
-        const minDuration = 600;
-        if (elapsed < minDuration) await sleep(minDuration - elapsed);
-        if (activeRequests === 0 && setGlobalLoading) setGlobalLoading(false);
-        return response;
+    (response) => {
+      activeRequests = Math.max(0, activeRequests - 1);
+      clearTimeout(startProgressTimeout);
+      if (activeRequests === 0) NProgress.done();
+      return response;
     },
-    async (error) => {
-        activeRequests = Math.max(0, activeRequests - 1);
-        const elapsed = Date.now() - spinnerStartTime;
-        const minDuration = 600;
-        if (elapsed < minDuration) await sleep(minDuration - elapsed);
-        if (activeRequests === 0 && setGlobalLoading) setGlobalLoading(false);
-
-        console.error('API Response Error:', error.response);
-
-        if (error.response?.status === 401) {
-            console.warn('Unauthorized! Token might be invalid or expired.');
-            localStorage.removeItem('authToken');
-            alert('Session expired. Please log in again.');
-        }
-
-        return Promise.reject(error);
+    (error) => {
+      activeRequests = Math.max(0, activeRequests - 1);
+      clearTimeout(startProgressTimeout);
+      if (activeRequests === 0) NProgress.done();
+      return Promise.reject(error);
     }
-);
+  );
 
 export default axiosInstance;
