@@ -28,7 +28,7 @@ import axiosInstance, { attachSpinnerInterceptor } from './axiosInstance';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 
-NProgress.configure({ showSpinner: true, trickleSpeed: 200 });
+NProgress.configure({ showSpinner: false, trickleSpeed: 200 });
 
 
 function App() {
