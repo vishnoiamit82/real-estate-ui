@@ -1,6 +1,12 @@
 // src/api/axiosInstance.js
 import axios from 'axios';
 
+// Spinner tracking variables
+let activeRequests = 0;
+let spinnerStartTime = null;
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+let setGlobalLoading = null;
+
 // Create an Axios instance
 const axiosInstance = axios.create({
     baseURL: process.env.REACT_APP_API_BASE_URL,
@@ -24,44 +30,66 @@ const protectedEndpoints = [
     '/api/send-email'
 ];
 
-// Add a request interceptor to include the Authorization header only for protected routes
-// Add a request interceptor to include the Authorization header only for protected routes
+// Attach spinner interceptor setup
+export const attachSpinnerInterceptor = (setLoadingFn) => {
+    setGlobalLoading = setLoadingFn;
+};
+
+// Spinner-enhanced request interceptor (add spinner + auth logic)
 axiosInstance.interceptors.request.use(
-    (config) => {
+    async (config) => {
+        // Spinner logic
+        activeRequests++;
+        if (setGlobalLoading) setGlobalLoading(true);
+        spinnerStartTime = Date.now();
+
+        // Authorization logic
         const token = localStorage.getItem('authToken');
         console.log('Auth Token in Interceptor:', token);
         console.log('Request URL in Interceptor:', config.url);
 
-        // Ensure the request URL is absolute to match protected endpoints
         const requestUrl = new URL(config.url, process.env.REACT_APP_API_BASE_URL).pathname;
         console.log('Normalized Request URL:', requestUrl);
 
-        // Check if the request URL is in the protected endpoints list
         const isProtected = protectedEndpoints.some((endpoint) =>
             requestUrl.startsWith(endpoint)
         );
 
         if (isProtected && token) {
             config.headers['Authorization'] = `Bearer ${token}`;
-            // console.log('Authorization header set:', config.headers['Authorization']);
         } else if (isProtected && !token) {
             console.warn('Protected route, but no token found!');
         }
 
         console.log('Request Config Before Sending:', config);
+
         return config;
     },
     (error) => {
+        activeRequests = Math.max(0, activeRequests - 1);
+        if (activeRequests === 0 && setGlobalLoading) setGlobalLoading(false);
         console.error('Request Error:', error);
         return Promise.reject(error);
     }
 );
 
-
-// Improved response interceptor for handling global errors
+// Response interceptor (add spinner hide logic + auth error handling)
 axiosInstance.interceptors.response.use(
-    (response) => response,
-    (error) => {
+    async (response) => {
+        activeRequests = Math.max(0, activeRequests - 1);
+        const elapsed = Date.now() - spinnerStartTime;
+        const minDuration = 600;
+        if (elapsed < minDuration) await sleep(minDuration - elapsed);
+        if (activeRequests === 0 && setGlobalLoading) setGlobalLoading(false);
+        return response;
+    },
+    async (error) => {
+        activeRequests = Math.max(0, activeRequests - 1);
+        const elapsed = Date.now() - spinnerStartTime;
+        const minDuration = 600;
+        if (elapsed < minDuration) await sleep(minDuration - elapsed);
+        if (activeRequests === 0 && setGlobalLoading) setGlobalLoading(false);
+
         console.error('API Response Error:', error.response);
 
         if (error.response?.status === 401) {

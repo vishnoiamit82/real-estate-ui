@@ -73,15 +73,17 @@ button:hover {
 
 /* index.css or App.css */
 body.loading::before {
-  content: 'Loading...';
+  content: '⏳ Loading...';
   position: fixed;
   top: 50%;
   left: 50%;
-  z-index: 9999;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.8);
   color: white;
-  padding: 1rem 2rem;
-  border-radius: 10px;
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-size: 20px;
   transform: translate(-50%, -50%);
+  z-index: 9999;
 }
+
 

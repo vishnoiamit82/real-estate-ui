@@ -17,11 +17,13 @@ const hideSpinner = () => {
 export const setupAxiosInterceptors = () => {
   axios.interceptors.request.use(
     (config) => {
+      console.log('🔄 Axios request started');
       activeRequests += 1;
       showSpinner();
       return config;
     },
     (error) => {
+      console.log('⚠️ Axios request error');   
       activeRequests -= 1;
       hideSpinner();
       return Promise.reject(error);

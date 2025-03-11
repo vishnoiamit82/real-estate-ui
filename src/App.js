@@ -24,7 +24,8 @@ import SharedPropertyPage from './components/SharedPropertyPage'
 import { jwtDecode } from 'jwt-decode';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
-import { setupAxiosInterceptors } from './services/axiosSetup';
+import SpinnerOverlay from './components/SpinnerOverlay';
+import axiosInstance, { attachSpinnerInterceptor } from './axiosInstance';
 import { Outlet } from "react-router-dom";
 
 
@@ -32,9 +33,10 @@ import { Outlet } from "react-router-dom";
 function App() {
 
     const [currentUser, setCurrentUser] = useState(null);
+    const [loading, setLoading] = useState(false); 
 
     useEffect(() => {
-        setupAxiosInterceptors();
+        attachSpinnerInterceptor(setLoading);
       }, []);
 
     useEffect(() => {
@@ -74,6 +76,7 @@ function App() {
 
                 {/* Main Content with Global Top Padding */}
                 <main className="flex-grow pt-20"> {/* Added pt-20 for padding below header */}
+                {loading && <SpinnerOverlay />}
                     <Routes>
                         {/* Public Routes */}
                         <Route path="/login" element={<LoginForm setCurrentUser={setCurrentUser} />} />
