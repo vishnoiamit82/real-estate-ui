@@ -11,7 +11,10 @@ const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = fal
         setNewCheckName(""); // Clear input after adding
     };
 
+
+
     return (
+        
         <div className="space-y-6">
             {Object.entries(propertySchemaFields).map(([section, fields]) => {
                 if (!visibleSections.includes(section)) return null;
@@ -25,7 +28,8 @@ const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = fal
                                 <div key={key} className="flex flex-col">
                                     <label className="font-medium mb-1">{label}:</label>
 
-                                    {type === "text" || type === "number" ? (
+                                    {/* ✅ Handle Text & Number Fields */}
+                                    {(type === "text" || type === "number") && (
                                         <input
                                             type={type}
                                             name={key}
@@ -35,8 +39,9 @@ const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = fal
                                                 ${readOnly ? "bg-gray-100 border-none cursor-default" : "border border-gray-300"}`}
                                             readOnly={readOnly}
                                         />
-                                    ) : null}
+                                    )}
 
+                                    {/* ✅ Handle Dropdown Fields */}
                                     {type === "dropdown" && (
                                         <select
                                             name={key}
@@ -70,61 +75,87 @@ const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = fal
                                             ))}
                                         </select>
                                     )}
-                                </div>
-                            ))}
-                        </div>
 
- {/* ✅ Render Additional Due Diligence Checks */}
-{section === "Additional Due Diligence" && (
-    <div>
-        {(formData.dueDiligence?.additionalChecks || []).map((check, index) => (
-            <div key={index} className="flex flex-col sm:flex-row items-center gap-2 mb-2">
-                <input
-                    type="text"
-                    value={check.name}
-                    className="border p-2 rounded-md w-full sm:flex-grow bg-gray-100"
-                    readOnly
-                />
-                <select
-                    value={check.status}
-                    onChange={(e) => {
-                        const updatedChecks = [...formData.dueDiligence.additionalChecks];
-                        updatedChecks[index].status = e.target.value;
-                        setFormData({ ...formData, dueDiligence: { ...formData.dueDiligence, additionalChecks: updatedChecks } });
-                    }}
-                    className="border p-2 rounded-md w-full sm:w-40"
-                    disabled={readOnly}
-                >
-                    <option value="pending">Pending</option>
-                    <option value="completed">Completed</option>
-                    <option value="failed">Failed</option>
-                </select>
-            </div>
-        ))}
+                                    {/* ✅ Handle Boolean Fields */}
+{/* ✅ Improved Off-Market Status Field */}
+{type === "boolean" && (
+    <div className="flex items-center justify-between">
+        {/* <span className="text-sm font-medium">Is Off Market?</span> */}
 
-        {/* ✅ Add New Additional Check (Aligned Properly) */}
-        {!readOnly && (
-            <div className="mt-3 flex flex-col sm:flex-row items-center gap-2 w-full">
-                <input
-                    type="text"
-                    placeholder="Enter new check"
-                    value={newCheckName}
-                    onChange={(e) => setNewCheckName(e.target.value)}
-                    className="border p-2 rounded-md w-full sm:flex-grow text-sm"
-                />
-                <button
-                    onClick={addNewCheck}
-                    type="button"
-                    className="w-full sm:w-40 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
-                >
-                    Add Check
-                </button>
-            </div>
-        )}
+        <button
+            type="button"
+            onClick={() => {
+                if (!readOnly) {
+                    setFormData((prevFormData) => ({
+                        ...prevFormData,
+                        [key]: !prevFormData[key], // Toggle Boolean Value
+                    }));
+                }
+            }}
+            className={`w-16 px-4 py-2 text-sm font-semibold rounded-md 
+                ${formData[key] ? "bg-green-500 text-white" : "bg-red-500 text-white"} 
+                ${readOnly ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:opacity-80"}`}
+            disabled={readOnly}
+        >
+            {formData[key] ? "Yes" : "No"}
+        </button>
     </div>
 )}
 
 
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* ✅ Render Additional Due Diligence Checks */}
+                        {section === "Additional Due Diligence" && (
+                            <div>
+                                {(formData.dueDiligence?.additionalChecks || []).map((check, index) => (
+                                    <div key={index} className="flex flex-col sm:flex-row items-center gap-2 mb-2">
+                                        <input
+                                            type="text"
+                                            value={check.name}
+                                            className="border p-2 rounded-md w-full sm:flex-grow bg-gray-100"
+                                            readOnly
+                                        />
+                                        <select
+                                            value={check.status}
+                                            onChange={(e) => {
+                                                const updatedChecks = [...formData.dueDiligence.additionalChecks];
+                                                updatedChecks[index].status = e.target.value;
+                                                setFormData({ ...formData, dueDiligence: { ...formData.dueDiligence, additionalChecks: updatedChecks } });
+                                            }}
+                                            className="border p-2 rounded-md w-full sm:w-40"
+                                            disabled={readOnly}
+                                        >
+                                            <option value="pending">Pending</option>
+                                            <option value="completed">Completed</option>
+                                            <option value="failed">Failed</option>
+                                        </select>
+                                    </div>
+                                ))}
+
+                                {/* ✅ Add New Additional Check (Aligned Properly) */}
+                                {!readOnly && (
+                                    <div className="mt-3 flex flex-col sm:flex-row items-center gap-2 w-full">
+                                        <input
+                                            type="text"
+                                            placeholder="Enter new check"
+                                            value={newCheckName}
+                                            onChange={(e) => setNewCheckName(e.target.value)}
+                                            className="border p-2 rounded-md w-full sm:flex-grow text-sm"
+                                        />
+                                        <button
+                                            onClick={addNewCheck}
+                                            type="button"
+                                            className="w-full sm:w-40 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+                                        >
+                                            Add Check
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 );
             })}

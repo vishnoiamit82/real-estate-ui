@@ -4,7 +4,7 @@ const propertySchemaFields = {
         { key: "propertyLink", label: "🔗 Property Link", type: "text" },
         { key: "propertyType", label: "🏠 Property Type", type: "text" },
         { key: "yearBuilt", label: "📅 Year Built", type: "text" },
-        { key: "offMarketStatus", label: "📉 Off Market Status", type: "boolean" }
+        { key: "offMarketStatus", label: "📉 Is Off-Market", type: "boolean" }
     ],
     "Financial Information": [
         { key: "askingPrice", label: "💰 Asking Price", type: "text" },
