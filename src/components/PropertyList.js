@@ -21,7 +21,7 @@ const PropertyList = () => {
     const navigate = useNavigate();
     const [sortKey, setSortKey] = useState('createdAt'); // Default sort key
     const [sortOrder, setSortOrder] = useState('desc'); // Default sort order
-    const [filter, setFilter] = useState("all");
+    const [filter, setFilter] = useState("active");
     const indexOfLastProperty = currentPage * propertiesPerPage;
     const indexOfFirstProperty = indexOfLastProperty - propertiesPerPage;
     const [selectedProperty, setSelectedProperty] = useState(null);
@@ -338,11 +338,12 @@ const PropertyList = () => {
                             }}
                             className="w-full md:w-auto px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 transition-all"
                         >
-                            <option value="all">All Properties</option>
+                            <option value="active">Active Properties (Excluding deleted)</option>
                             <option value="pursue">Pursue</option>
                             <option value="on_hold">On Hold</option>
-                            <option value="deleted">Deleted</option>
                             <option value="undecided">Undecided</option>
+                            <option value="all">All Properties (Including deleted)</option>
+                            <option value="deleted">Deleted Only</option>
                         </select>
                     </div>
     
