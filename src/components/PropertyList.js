@@ -7,6 +7,7 @@ import EmailModal from './EmailModal';
 import EmailReplies from './EmailReplies';
 import PropertyTable from './PropertyTable';
 import { PlusCircle, UserPlus, Filter, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 
 
@@ -82,18 +83,30 @@ const PropertyList = () => {
     });
 
     // Inside your PropertyList or PropertyDetail component:
+
+
     const handleShareProperty = async (propertyId) => {
         try {
             const response = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/properties/${propertyId}/share`);
-
             const { shareLink } = response.data;
-            // Show the share link to the user, e.g., in a modal or toast
-            alert(`Share this link: ${shareLink}`);
+    
+            // ✅ Copy link to clipboard
+            await navigator.clipboard.writeText(shareLink);
+    
+            // ✅ Show toast notification
+            toast.success(
+                <>
+                    🔗 Link copied to clipboard!<br />
+                    <span style={{ fontSize: '0.85rem' }}>{shareLink}</span>
+                </>
+            );
         } catch (error) {
             console.error('Error sharing property:', error);
-            alert('Failed to generate share link.');
+            toast.error('❌ Failed to generate share link.');
         }
     };
+    
+
 
 
 

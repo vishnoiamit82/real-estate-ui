@@ -1,5 +1,7 @@
 // App.js
+
 import React, { useState, useEffect } from 'react';
+import 'react-toastify/dist/ReactToastify.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -27,6 +29,13 @@ import ResetPassword from './components/ResetPassword';
 import axiosInstance, { attachSpinnerInterceptor } from './axiosInstance';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
+
+// App.js or index.js
+import { ToastContainer, toast } from 'react-toastify';
+
+
+// Inside your App JSX
+<ToastContainer position="top-right" autoClose={3000} />
 
 NProgress.configure({ showSpinner: false, trickleSpeed: 200 });
 
@@ -75,6 +84,7 @@ function App() {
                 <Header currentUser={currentUser} onLogout={handleLogout} />
 
                 <main className="flex-grow pt-20">
+                    <ToastContainer position="top-right" autoClose={3000} />
                     <Routes>
                         <Route path="/login" element={<LoginForm setCurrentUser={setCurrentUser} />} />
                         <Route path="/signup" element={<SignupForm />} />
