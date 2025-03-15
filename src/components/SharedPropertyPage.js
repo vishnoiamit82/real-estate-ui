@@ -35,6 +35,7 @@ const SharedPropertyPage = () => {
                 setFormData={() => {}} // ✅ No need to update formData in view mode
                 visibleSections={visibleSections} 
                 readOnly={true} // ✅ Read-Only Mode
+                mode="shared"
             />
         </div>
     );

@@ -29,7 +29,7 @@ const PropertyEdit = () => {
     const [message, setMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [newConversation, setNewConversation] = useState(''); // For new conversation entry
-    const visibleSections = ["Basic Information", "Financial Information", "Property Details", "Due Diligence", "Additional Due Diligence"];
+    const visibleSections = [ "Agent & Created Info", "Basic Information", "Financial Information", "Property Details", "Location & Zoning", "Due Diligence", "Status Tracking", "Additional Due Diligence","Audit & Timestamps"];
     const [property, setProperty] = useState(null);
 
 
@@ -157,7 +157,7 @@ const PropertyEdit = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
 
-                <div className="mt-6 p-6 bg-white border rounded-lg shadow-lg w-full max-w-6xl mx-auto">
+                
                 <PropertyFields 
                     formData={formData} 
                     setFormData={setFormData} 
@@ -165,10 +165,11 @@ const PropertyEdit = () => {
                     readOnly={false} // ✅ Edit mode (Editable)
                     propertyId={property?._id}  // ✅ Pass propertyId safely
                     createdBy={property?.createdBy} // ✅ Pass createdBy safely
+                    mode="edit"
                 />
 
 
-                </div>
+                
 
 
                 <div className="mt-4 p-6  w-full max-w-6xl mx-auto">

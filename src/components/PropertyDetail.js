@@ -15,7 +15,7 @@ const PropertyDetail = () => {
     const [smsMessage, setSmsMessage] = useState('');
     const [smsStatus, setSmsStatus] = useState('');
 
-    const visibleSections = ["Basic Information", "Financial Information", "Property Details", "Due Diligence", "Additional Due Diligence"];
+    const visibleSections = [ "Agent & Created Info", "Basic Information", "Financial Information", "Property Details", "Location & Zoning", "Due Diligence", "Status Tracking", "Additional Due Diligence","Audit & Timestamps"];
 
     useEffect(() => {
         const fetchProperty = async () => {
@@ -87,6 +87,7 @@ const PropertyDetail = () => {
                 setFormData={setFormData}
                 visibleSections={visibleSections}
                 readOnly={true} // ✅ View mode (Read-Only)
+                mode="view"
             />
 
 
