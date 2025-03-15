@@ -32,14 +32,21 @@ const Header = ({ currentUser, onLogout }) => {
     return (
         <header className="bg-gray-800 text-white fixed top-0 w-full shadow-md z-50">
             <nav className="container mx-auto flex justify-between items-center p-4">
+                {/* Logo */}
                 <h1>
                     <NavLink to="/" className="text-xl font-bold hover:text-blue-400 transition">
                         Buyers Agents App
                     </NavLink>
                 </h1>
 
+                {/* Desktop Menu */}
                 <ul className="hidden md:flex space-x-6 items-center">
-                <li><NavLink to="/" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>My Properties</NavLink></li>
+                    <li>
+                        <NavLink to="/" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>
+                            My Properties
+                        </NavLink>
+                    </li>
+
                     {currentUser?.role === 'admin' && (
                         <>
                             <li><NavLink to="/agents" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>Agent Management</NavLink></li>
@@ -48,21 +55,22 @@ const Header = ({ currentUser, onLogout }) => {
                             <li><NavLink to="/user-management" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>User Management</NavLink></li>
                         </>
                     )}
-                    {currentUser && <li><NavLink to="/community-board" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>Community Properties</NavLink></li>}
 
-                    {(currentUser?.role === 'admin' || currentUser?.role === 'property_sourcer') && (
-                        <li><NavLink to="/template-management" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>Email Templates</NavLink></li>
+                    {currentUser && (
+                        <li>
+                            <NavLink to="/community-board" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>
+                                Community Properties
+                            </NavLink>
+                        </li>
                     )}
 
-{/*                     
-                    {currentUser && (
-                    <li>
-                        <NavLink to="/saved-properties" className="hover:text-blue-400">
-                        ⭐ My Saved Properties
-                        </NavLink>
-                    </li>
-                    )} */}
-
+                    {['admin', 'property_sourcer'].includes(currentUser?.role) && (
+                        <li>
+                            <NavLink to="/template-management" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>
+                                Email Templates
+                            </NavLink>
+                        </li>
+                    )}
 
                     {!currentUser ? (
                         <>
@@ -80,22 +88,39 @@ const Header = ({ currentUser, onLogout }) => {
                             {userMenuOpen && (
                                 <ul className="absolute right-0 mt-2 bg-white text-gray-800 rounded shadow-md py-2 w-48 z-50">
                                     <li className="px-4 py-2 border-b text-sm">{currentUser.email}</li>
-                                    <li><button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-red-100 text-sm text-red-600">Logout</button></li>
+                                    <li>
+                                        <NavLink to="/profile" className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => setUserMenuOpen(false)}>
+                                            My Profile
+                                        </NavLink>
+                                    </li>
+                                    <li>
+                                        <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-red-100 text-sm text-red-600">
+                                            Logout
+                                        </button>
+                                    </li>
                                 </ul>
                             )}
                         </li>
                     )}
                 </ul>
 
+                {/* Mobile Menu Button */}
                 <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden focus:outline-none">
                     {menuOpen ? <X size={28} /> : <Menu size={28} />}
                 </button>
             </nav>
 
+            {/* Mobile Menu Dropdown */}
             {menuOpen && (
                 <div className="md:hidden bg-gray-900 text-white flex flex-col items-center space-y-4 py-4">
-                    {(currentUser?.role === 'admin' || currentUser?.role === 'property_sourcer') && <NavLink to="/template-management" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">Email Templates</NavLink>}
-                    <NavLink to="/" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">My Properties</NavLink>
+                    {['admin', 'property_sourcer'].includes(currentUser?.role) && (
+                        <NavLink to="/template-management" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">
+                            Email Templates
+                        </NavLink>
+                    )}
+                    <NavLink to="/" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">
+                        My Properties
+                    </NavLink>
                     {currentUser?.role === 'admin' && (
                         <>
                             <NavLink to="/agents" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">Agent Management</NavLink>
@@ -104,7 +129,19 @@ const Header = ({ currentUser, onLogout }) => {
                             <NavLink to="/user-management" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">User Management</NavLink>
                         </>
                     )}
-                    {currentUser && <NavLink to="/community-board" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">Community Board</NavLink>}
+                    {currentUser && (
+                        <NavLink to="/community-board" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">Community Properties</NavLink>
+                    )}
+
+                    {currentUser && (
+                        <div className="text-center text-sm text-gray-300">
+                            <div className="w-9 h-9 bg-blue-500 text-white font-bold rounded-full flex items-center justify-center mx-auto mb-1">
+                                {getUserInitials(currentUser.name)}
+                            </div>
+                            <div>{currentUser.email}</div>
+                        </div>
+                    )}
+
                     {!currentUser ? (
                         <>
                             <NavLink to="/signup" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">Sign Up</NavLink>
