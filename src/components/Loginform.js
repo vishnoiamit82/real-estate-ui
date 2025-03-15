@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../axiosInstance';
+import { jwtDecode } from 'jwt-decode';
 
 const LoginForm = ({ setCurrentUser }) => {
     const [email, setEmail] = useState('');
@@ -15,10 +16,19 @@ const LoginForm = ({ setCurrentUser }) => {
                 email,
                 password
             });
+            
 
             localStorage.setItem('authToken', response.data.token);
-            setCurrentUser(response.data.user);
+            const decodedUser = jwtDecode(response.data.token);
+            setCurrentUser(decodedUser); 
+            
             localStorage.setItem('currentUser', JSON.stringify(response.data.user));
+
+
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+            console.log("currentUser in login form", currentUser);
+            console.log("currentUser.id in login form", currentUser?.id);
 
             navigate(response.data.user.role === 'admin' ? '/user-management' : '/');
         } catch (error) {

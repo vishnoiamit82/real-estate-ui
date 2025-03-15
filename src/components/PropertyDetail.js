@@ -7,14 +7,14 @@ import PropertyFields from "./PropertyFields"; // ✅ Import PropertyFields
 const PropertyDetail = () => {
     const { id } = useParams(); // Get the property ID from the URL
     const navigate = useNavigate();
-    
+
     // ✅ Define formData state
     const [formData, setFormData] = useState({});
     const [property, setProperty] = useState(null);
     const [message, setMessage] = useState('');
     const [smsMessage, setSmsMessage] = useState('');
     const [smsStatus, setSmsStatus] = useState('');
-    
+
     const visibleSections = ["Basic Information", "Financial Information", "Property Details", "Due Diligence", "Additional Due Diligence"];
 
     useEffect(() => {
@@ -61,6 +61,7 @@ const PropertyDetail = () => {
     }
 
     return (
+
         <div className="container mx-auto p-6 space-y-6">
             <div className="flex justify-between items-center">
                 <button onClick={() => navigate('/')} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Back to Summary</button>
@@ -72,11 +73,19 @@ const PropertyDetail = () => {
 
             {message && <p className={`text-${message.includes('successfully') ? 'green' : 'red'}-600`}>{message}</p>}
 
+            <div className="mb-4 text-sm text-gray-600">
+                <strong>Property Source:</strong>{' '}
+                {property.source === 'created'
+                    ? 'Created by you'
+                    : `Saved from Community (Posted by ${property.sharedBy?.name || 'Unknown'})`}
+            </div>
+
+
             {/* ✅ Pass formData & setFormData */}
-            <PropertyFields 
-                formData={formData} 
-                setFormData={setFormData} 
-                visibleSections={visibleSections} 
+            <PropertyFields
+                formData={formData}
+                setFormData={setFormData}
+                visibleSections={visibleSections}
                 readOnly={true} // ✅ View mode (Read-Only)
             />
 

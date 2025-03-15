@@ -120,7 +120,7 @@ const PropertyEdit = () => {
             }
     
             // // ✅ Update Remaining Property Data (PUT)
-            // await axiosInstance.put(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`, propertyData);
+            await axiosInstance.put(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`, propertyData);
     
             setSuccessMessage("Property updated successfully!");
             // navigate(`/properties/${id}`);

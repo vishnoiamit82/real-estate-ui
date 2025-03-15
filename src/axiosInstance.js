@@ -30,7 +30,8 @@ const protectedEndpoints = [
     '/api/buyers-agents',
     '/api/follow-up-tasks',
     '/api/cashflow',
-    '/api/send-email'
+    '/api/send-email',
+    '/api/saved-properties'
 ];
 
 // Attach spinner interceptor setup

@@ -1,21 +1,29 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Eye, Edit2, NotebookText, Share2, MoreVertical, Trash, RotateCcw, Mail } from 'lucide-react';
 
-const PropertyCardList = ({ 
-    properties, 
-    navigate, 
-    setSelectedPropertyForEmail, 
-    setSelectedAgent, 
-    setSelectedPropertyForNotes, 
-    updateDecisionStatus, 
-    restoreProperty, 
-    deleteProperty, 
-    handleShareProperty 
+import React, { useState, useRef, useEffect } from 'react';
+import { MoreVertical } from 'lucide-react';
+import { getPropertyActions } from '../utils/getPropertyActions';
+
+const PropertyCardList = ({
+    properties,
+    navigate,
+    setSelectedPropertyForEmail,
+    setSelectedAgent,
+    setSelectedPropertyForNotes,
+    updateDecisionStatus,
+    restoreProperty,
+    deleteProperty,
+    handleShareProperty,
+    handleShareToCommunity,
+    handleSaveToMyList,
+    handleUnshareFromCommunity,
+    handlePursueCommunityProperty,
+    deleteSavedProperty,
+    currentUser
 }) => {
     const [expandedCard, setExpandedCard] = useState(null);
     const dropdownRef = useRef(null);
 
-    // Close dropdown when clicking outside
+
     useEffect(() => {
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -31,86 +39,167 @@ const PropertyCardList = ({
             {properties.length === 0 ? (
                 <p className="text-center text-gray-500 w-full">No properties found.</p>
             ) : (
-                properties.map((property) => (
-                    <div key={property._id} className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 border border-gray-300 dark:border-gray-700 flex flex-col">
-                        
-                        {/* Property Title and Decision Status */}
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-lg font-semibold truncate">{property.address || "N/A"}</h3>
-                             <span className={`px-2 py-1 text-xs font-semibold rounded-md ${property.is_deleted ? 'bg-red-500 text-white' :
-                                property.decisionStatus === 'pursue' ? 'bg-green-500 text-white' :
-                                property.decisionStatus === 'on_hold' ? 'bg-yellow-500 text-white' :
-                                'bg-gray-500 text-white'}`}>
-                                {property.is_deleted ? 'Deleted' : property.decisionStatus || 'Undecided'}
-                            </span>
-                        </div>
+                properties.map((property) => {
+                    const actions = getPropertyActions({
+                        property,
+                        source: property.source,
+                        handlers: {
+                            navigate,
+                            setSelectedPropertyForEmail,
+                            setSelectedAgent,
+                            setSelectedPropertyForNotes,
+                            updateDecisionStatus,
+                            deleteProperty,
+                            restoreProperty,
+                            handleShareProperty,
+                            handleShareToCommunity,
+                            handleSaveToMyList,
+                            handleUnshareFromCommunity,
+                            handlePursueCommunityProperty,
+                            deleteSavedProperty,
+                            currentUser
+                        },
+                    });
 
-                        {/* Property Details */}
-                        <p className="text-sm text-gray-600 dark:text-gray-300">Offer Date: {property.offerClosingDate ? new Date(property.offerClosingDate).toLocaleDateString() : "N/A"}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                            {/* Agent: <a href={`/agents/${property.agentId?._id}`} className="text-blue-500 hover:underline">{property.agentId?.name || "N/A"}</a> */}
-                            Agent: <span className="text-gray-700">{property.agentId?.name || "N/A"}</span>
+                    const primaryActions = actions.filter(action => action.type === 'primary');
+                    const moreActions = actions.filter(action => action.type === 'secondary');
 
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">Price: {property.askingPrice || "N/A"}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">Rental Yield: {property.rental ? `${property.rental} | ${property.rentalYield}` : "N/A"}</p>
 
-                        {/* Primary Actions */}
-                        <div className="flex justify-between mt-4">
-                            <div className="grid grid-cols-2 gap-2 w-full">
-                                <button onClick={() => navigate(`/properties/${property._id}`)} className="flex items-center gap-1 px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm">
-                                    <Eye size={16} /> View
+                    return (
+                        <div
+                            key={property._id}
+                            className={`relative bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 border ${property.isCommunityShared ? 'border-green-500' : 'border-gray-300'
+                                } dark:border-gray-700 flex flex-col`}
+                        >
+                            <div className="flex justify-between items-start mb-2">
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-lg font-semibold truncate">{property.address || "N/A"}</h3>
+
+                                    {/* 🏷 Property Source Badge */}
+                                    {property.source === 'created' ? (
+                                        <span className={`text-xs px-2 py-1 rounded-md mt-1 font-medium inline-block ${property.isCommunityShared ? 'bg-blue-100 text-blue-800' : 'bg-blue-100 text-blue-800'
+                                            }`}>
+                                            🛠 {property.isCommunityShared ? 'My Property (Shared on Community Board)' : 'My Property (Private)'}
+                                        </span>
+                                    ) : (
+                                        // Special case: Property on community board but created by the current user (edge case on community page)
+                                        (property.isCommunityShared && property.sharedBy?._id === currentUser?.id) ? (
+                                            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md mt-1 font-medium inline-block">
+                                                🪪 Your Property on Community Board
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-md mt-1 font-medium inline-block">
+                                                🌍 Community Property
+                                            </span>
+                                        )
+                                    )}
+
+                                    {/* 📍 Source Subtext Description */}
+                                    <div className="text-xs text-gray-500 mt-1">
+                                        {property.source === 'created' ? (
+                                            property.isCommunityShared ? (
+                                                <>You created this property and shared it with the community.</>
+                                            ) : (
+                                                <>You created this property privately.</>
+                                            )
+                                        ) : (
+                                            (property.isCommunityShared && property.sharedBy?._id === currentUser?.id) ? (
+                                                <>This property was created and shared by you.</>
+                                            ) : (
+                                                <>This property was shared by <span className="font-semibold text-indigo-700">{property.sharedBy?.name || 'another user'}</span>.</>
+                                            )
+                                        )}
+                                    </div>
+                                </div>
+
+
+                                {/* Decision Status Tag (only show for non-community properties) */}
+                                {(property.source === 'created' || property.source === 'saved') && (
+                                    <div className="flex-shrink-0 ml-2">
+                                        <span className={`px-2 py-1 text-xs font-semibold rounded-md ${property.is_deleted
+                                            ? 'bg-red-500 text-white'
+                                            : property.decisionStatus === 'pursue'
+                                                ? 'bg-green-500 text-white'
+                                                : property.decisionStatus === 'on_hold'
+                                                    ? 'bg-yellow-500 text-white'
+                                                    : 'bg-gray-500 text-white'
+                                            }`}>
+                                            {property.is_deleted ? 'Deleted' : property.decisionStatus || 'Undecided'}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+
+
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                                Offer Date: {property.offerClosingDate ? new Date(property.offerClosingDate).toLocaleDateString() : "N/A"}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                                {property.isCommunityShared ? (
+                                    <>Posted by: <span className="font-semibold text-indigo-700">{property.sharedBy?.name || 'Unknown'}</span></>
+                                ) : (
+                                    <>Agent: <span className="text-gray-700">{property.agentId?.name || 'N/A'}</span></>
+                                )}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">Price: {property.askingPrice || "N/A"}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">Rental Yield: {property.rental ? `${property.rental} | ${property.rentalYield}` : "N/A"}</p>
+
+                            <div className="flex justify-between mt-4">
+                                <div className="grid grid-cols-2 gap-2 w-full">
+                                    {primaryActions.map((action, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={action.onClick}
+                                            className={`flex items-center gap-1 px-3 py-2 rounded text-sm text-white
+                                        ${action.label === 'View' ? 'bg-gray-600 hover:bg-gray-700' :
+                                                    action.label === 'Notes' ? 'bg-purple-600 hover:bg-purple-700' :
+                                                        action.label === 'Pursue' ? 'bg-green-600 hover:bg-green-700' :
+                                                            action.label === 'On Hold' ? 'bg-yellow-500 hover:bg-yellow-600' :
+                                                                action.label === 'Save Property' ? 'bg-blue-600 hover:bg-blue-700' :
+                                                                    action.label === 'Message Poster' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-gray-400'}`}
+                                        >
+                                            <action.icon size={16} />
+                                            {action.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                            </div>
+
+                            <div className="relative mt-2">
+                                <button
+                                    onClick={() => setExpandedCard(expandedCard === property._id ? null : property._id)}
+                                    className="p-2 bg-gray-300 dark:bg-gray-700 rounded-full hover:bg-gray-400 dark:hover:bg-gray-600 w-full flex justify-center"
+                                >
+                                    <MoreVertical size={20} />
                                 </button>
-                                <button onClick={() => setSelectedPropertyForNotes(property)} className="flex items-center gap-1 px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm">
-                                    <NotebookText size={16} /> Notes
-                                </button>
-                                <button onClick={() => updateDecisionStatus(property._id, "pursue")} className="flex items-center gap-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm">
-                                    Pursue
-                                </button>
-                                <button onClick={() => updateDecisionStatus(property._id, "on_hold")} className="flex items-center gap-1 px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-sm">
-                                    Hold
-                                </button>
+
+                                {expandedCard === property._id && moreActions.length > 0 && (
+                                    <div
+                                        ref={dropdownRef}
+                                        className="absolute top-10 right-0 w-52 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl rounded-md z-50 animate-fade-in"
+                                    >
+                                        {moreActions.map((action, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => {
+                                                    action.onClick();
+                                                    setExpandedCard(null);
+                                                }}
+                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-150 rounded"
+                                            >
+                                                <action.icon size={16} className="text-gray-500" />
+                                                <span className="truncate">{action.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+
                             </div>
                         </div>
-
-                        {/* More Actions Dropdown */}
-                        <div className="relative mt-2">
-                            <button 
-                                onClick={() => setExpandedCard(expandedCard === property._id ? null : property._id)} 
-                                className="p-2 bg-gray-300 dark:bg-gray-700 rounded-full hover:bg-gray-400 dark:hover:bg-gray-600 w-full flex justify-center"
-                            >
-                                <MoreVertical size={20} />
-                            </button>
-
-                            {/* Dropdown for More Actions */}
-                            {expandedCard === property._id && (
-                                <div ref={dropdownRef} className="absolute top-10 right-0 bg-white dark:bg-gray-900 shadow-lg border border-gray-300 dark:border-gray-700 rounded-lg p-2 w-40 z-10">
-                                    <button onClick={() => navigate(`/edit-property/${property._id}`)} className="flex items-center w-full gap-2 px-3 py-2 text-blue-600 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-sm">
-                                        <Edit2 size={16} /> Edit
-                                    </button>
-                                    <button onClick={() => {
-                                        setSelectedPropertyForEmail(property);
-                                        setSelectedAgent(property.agentId);
-                                    }} className="flex items-center w-full gap-2 px-3 py-2 text-pink-600 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-sm">
-                                        <Mail size={16} /> Email
-                                    </button>
-                                    <button onClick={() => handleShareProperty(property._id)} className="flex items-center w-full gap-2 px-3 py-2 text-indigo-600 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-sm">
-                                        <Share2 size={16} /> Share
-                                    </button>
-                                    {property.is_deleted ? (
-                                        <button onClick={() => restoreProperty(property._id)} className="flex items-center w-full gap-2 px-3 py-2 text-green-600 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-sm">
-                                            <RotateCcw size={16} /> Restore
-                                        </button>
-                                    ) : (
-                                        <button onClick={() => deleteProperty(property._id)} className="flex items-center w-full gap-2 px-3 py-2 text-red-600 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-sm">
-                                            <Trash size={16} /> Delete
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                ))
+                    );
+                })
             )}
         </div>
     );

@@ -8,7 +8,7 @@ const propertySchemaFields = {
     ],
     "Financial Information": [
         { key: "askingPrice", label: "💰 Asking Price", type: "text" },
-        { key: "rental", label: "🏠 Rental Price", type: "text" },
+        { key: "rental", label: "🏠 Rental Per Week", type: "text" },
         { key: "rentalYield", label: "📈 Rental Yield", type: "text" },
         { key: "councilRate", label: "🏛️ Council Rate", type: "text" }
     ],

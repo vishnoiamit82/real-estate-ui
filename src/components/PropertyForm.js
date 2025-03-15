@@ -286,7 +286,7 @@ const PropertyForm = () => {
                     <div className="relative">
                         <input
                             type="text"
-                            placeholder="🔍 Search for an agent"
+                            placeholder="🔍 Search for an agent or create one !"
                             value={searchAgent}
                             onChange={handleAgentSearch}
                             className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300 hover:shadow-md transition"

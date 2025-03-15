@@ -56,7 +56,7 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
             try {
                 const currentUser = JSON.parse(storedUser);
                 if (currentUser?.email) {
-                    setCcEmail("info@nationalpropertyconsultant.com.au");
+                    setCcEmail(currentUser?.email);
                 }
             } catch (error) {
                 console.error('Error parsing currentUser from localStorage:', error);

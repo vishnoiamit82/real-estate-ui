@@ -26,12 +26,14 @@ import SharedPropertyPage from './components/SharedPropertyPage';
 import { jwtDecode } from 'jwt-decode';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
+import SavedPropertiesPage from './components/SavedPropertiesPage';
 import axiosInstance, { attachSpinnerInterceptor } from './axiosInstance';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 
 // App.js or index.js
 import { ToastContainer, toast } from 'react-toastify';
+import CommunityBoard from './components/CommunityBoard';
 
 
 // Inside your App JSX
@@ -40,8 +42,15 @@ import { ToastContainer, toast } from 'react-toastify';
 NProgress.configure({ showSpinner: false, trickleSpeed: 200 });
 
 
+
+
 function App() {
     const [currentUser, setCurrentUser] = useState(null);
+    const [resendCooldown, setResendCooldown] = useState(false);
+    const [checkStatusCooldown, setCheckStatusCooldown] = useState(false);
+    
+
+    console.log ("current user", currentUser)
 
     useEffect(() => {
         attachSpinnerInterceptor(() => {
@@ -53,6 +62,7 @@ function App() {
 
     useEffect(() => {
         const token = localStorage.getItem('authToken');
+        console.log ("token in app js", token)
         if (token) {
             try {
                 const decodedUser = jwtDecode(token);
@@ -63,6 +73,7 @@ function App() {
                     handleLogout();
                 } else {
                     setCurrentUser(decodedUser);
+                    console.log ("decodedUser", decodedUser)
                 }
             } catch (error) {
                 console.error('Invalid token. Logging out...', error);
@@ -78,11 +89,54 @@ function App() {
         window.location.href = '/login';
     };
 
+
+
+
+    const handleSendVerificationEmail = async () => {
+      try {
+        setResendCooldown(true);
+        await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/send-email/verify-sender`);
+        toast.success('Verification email sent. Please check your inbox.');
+    
+        setTimeout(() => setResendCooldown(false), 60000); // Optional cooldown
+      } catch (error) {
+        console.error('Error sending verification email:', error);
+        toast.error('Failed to send verification email.');
+        setResendCooldown(false);
+      }
+    };
+    
+    const handleCheckVerificationStatus = async () => {
+      try {
+        setCheckStatusCooldown(true);
+        const response = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/send-email/email-verification-status`);
+        const { isEmailVerified } = response.data;
+    
+        if (isEmailVerified) {
+          toast.success('✅ Your email is now verified!');
+          // Optionally reload or set updated user state
+          const token = localStorage.getItem('authToken');
+          const decodedUser = jwtDecode(token);
+          setCurrentUser(decodedUser); // refresh UI immediately
+        } else {
+          toast.info('Your email is still not verified.');
+        }
+    
+        setTimeout(() => setCheckStatusCooldown(false), 30000); // Optional cooldown
+      } catch (error) {
+        console.error('Error checking verification status:', error);
+        toast.error('Failed to check verification status.');
+        setCheckStatusCooldown(false);
+      }
+    };
+    
+
+
     return (
         <Router>
             <div className="flex flex-col min-h-screen">
                 <Header currentUser={currentUser} onLogout={handleLogout} />
-
+                
                 <main className="flex-grow pt-20">
                     <ToastContainer position="top-right" autoClose={3000} />
                     <Routes>
@@ -108,6 +162,11 @@ function App() {
                         <Route path="/reset-password/:token" element={<ResetPassword />} />
                         <Route path="/user-management" element={<ProtectedRoute requiredRole="admin"><UserManagement /></ProtectedRoute>} />
                         <Route path="/agents" element={<ProtectedRoute requiredRole="admin"><AgentList /></ProtectedRoute>} />
+                        <Route path="/community-board" element={<ProtectedRoute><CommunityBoard /></ProtectedRoute>} />
+                       
+
+                        <Route path="/saved-properties" element={<ProtectedRoute><SavedPropertiesPage /></ProtectedRoute>} />
+
                     </Routes>
                 </main>
 
