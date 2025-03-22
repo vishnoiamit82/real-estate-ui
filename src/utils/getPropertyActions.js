@@ -37,12 +37,7 @@ import {
     console.log("currentUser in get Property Action", currentUser)
   
     // === COMMON PRIMARY ACTIONS ===
-    actions.push({
-      label: 'View',
-      icon: Eye,
-      type: 'primary',
-      onClick: () => navigate(`/properties/${property._id}`),
-    });
+
   
     actions.push({
       label: 'Notes',
@@ -129,9 +124,9 @@ import {
     // === CREATED PROPERTIES ===
     if (source === 'created') {
       actions.push({
-        label: 'Edit',
+        label: 'View/Edit',
         icon: Edit2,
-        type: 'secondary',
+        type: 'primary',
         onClick: () => navigate(`/edit-property/${property._id}`),
       });
   

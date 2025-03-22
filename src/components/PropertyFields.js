@@ -16,7 +16,7 @@ const setNestedValue = (obj, path, value) => {
     target[lastKey] = value;
 };
 
-const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = false, mode = "shared" }) => {
+const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = false, mode = "shared" ,onChange}) => {
     const [newCheckName, setNewCheckName] = useState("");
 
     const addNewCheck = () => {
@@ -156,6 +156,7 @@ const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = fal
                                                         const updatedForm = { ...formData };
                                                         setNestedValue(updatedForm, key, e.target.value);
                                                         setFormData(updatedForm);
+                                                        if (typeof onChange === 'function') onChange(e); // ✅ call external handler
                                                     }
                                                 }}
                                                 className={`w-full p-2 rounded-md focus:ring focus:ring-blue-300 ${readOnly

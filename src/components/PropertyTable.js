@@ -73,7 +73,16 @@ const PropertyCardList = ({
                         >
                             <div className="flex justify-between items-start mb-2">
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="text-lg font-semibold truncate">{property.address || "N/A"}</h3>
+                                    <h3 className="text-lg font-semibold truncate">
+                                        {property.propertyLink ? (
+                                            <a href={property.propertyLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800">
+                                                {property.address || "N/A"}
+                                            </a>
+                                        ) : (
+                                            property.address || "N/A"
+                                        )}
+                                    </h3>
+
 
                                     {/* 🏷 Property Source Badge */}
                                     {property.source === 'created' ? (
@@ -131,18 +140,32 @@ const PropertyCardList = ({
                             </div>
 
 
-                            <p className="text-sm text-gray-600 dark:text-gray-300">
-                                Offer Date: {property.offerClosingDate ? new Date(property.offerClosingDate).toLocaleDateString() : "N/A"}
-                            </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-300">
-                                {property.isCommunityShared ? (
-                                    <>Posted by: <span className="font-semibold text-indigo-700">{property.sharedBy?.name || 'Unknown'}</span></>
-                                ) : (
-                                    <>Agent: <span className="text-gray-700">{property.agentId?.name || 'N/A'}</span></>
-                                )}
-                            </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-300">Price: {property.askingPrice || "N/A"}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-300">Rental Yield: {property.rental ? `${property.rental} | ${property.rentalYield}` : "N/A"}</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700 dark:text-gray-300 mt-2">
+                                <div><strong>Offer Date:</strong> {property.offerClosingDate ? new Date(property.offerClosingDate).toLocaleDateString() : "N/A"}</div>
+
+                                <div>
+                                    {property.isCommunityShared ? (
+                                        <> <strong>Posted by:</strong> <span className="font-semibold text-indigo-700">{property.sharedBy?.name || 'Unknown'}</span> </>
+                                    ) : (
+                                        <> <strong>Agent:</strong> <span className="text-gray-700">{property.agentId?.name || 'N/A'}</span> </>
+                                    )}
+                                </div>
+
+                                <div><strong>Price:</strong> {property.askingPrice || "N/A"}</div>
+                                <div><strong>Rental Yield:</strong> {property.rental ? `${property.rental} | ${property.rentalYield}` : "N/A"}</div>
+                                <div><strong>Bedrooms:</strong> {property.bedrooms || 'N/A'}</div>
+                                <div><strong>Bathrooms:</strong> {property.bathrooms || 'N/A'}</div>
+                                <div><strong>Car Spaces:</strong> {property.carSpaces || 'N/A'}</div>
+                                <div><strong>Land Size:</strong> {property.landSize || 'N/A'}</div>
+                                <div><strong>Year Built:</strong> {property.yearBuilt || 'N/A'}</div>
+                                <div><strong>Zoning:</strong> {property.zoningType || 'N/A'}</div>
+                                <div><strong>Flood Zone:</strong> {property.floodZone || 'N/A'}</div>
+                                <div><strong>Bushfire Zone:</strong> {property.bushfireZone || 'N/A'}</div>
+                            </div>
+
+
+
+
 
                             <div className="flex justify-between mt-4">
                                 <div className="grid grid-cols-2 gap-2 w-full">

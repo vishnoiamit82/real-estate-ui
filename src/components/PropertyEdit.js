@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../axiosInstance';
 import PropertyFields from "./PropertyFields";
+import { PROPERTY_SECTION_CONFIGS } from '../config/propertySectionConfigs';
 
 const PropertyEdit = () => {
     const { id } = useParams();
@@ -10,7 +11,7 @@ const PropertyEdit = () => {
         address: '',
         propertyLink: '',
         agentId: '',
-        agentDetails: '', // Combines name, phone, and email
+        agentDetails: '',
         offerClosingDate: '',
         currentStatus: 'available',
         askingPrice: '',
@@ -20,7 +21,7 @@ const PropertyEdit = () => {
         insurance: '',
         floodZone: '',
         bushfireZone: '',
-        conversation: [], // For storing property conversation
+        conversation: [],
     });
 
     const [agents, setAgents] = useState([]);
@@ -28,11 +29,10 @@ const PropertyEdit = () => {
     const [searchAgent, setSearchAgent] = useState('');
     const [message, setMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    const [newConversation, setNewConversation] = useState(''); // For new conversation entry
-    const visibleSections = [ "Agent & Created Info", "Basic Information", "Financial Information", "Property Details", "Location & Zoning", "Due Diligence", "Status Tracking", "Additional Due Diligence","Audit & Timestamps"];
+    const [newConversation, setNewConversation] = useState('');
     const [property, setProperty] = useState(null);
 
-
+    const config = PROPERTY_SECTION_CONFIGS.full;
 
     useEffect(() => {
         const fetchProperty = async () => {
@@ -41,7 +41,6 @@ const PropertyEdit = () => {
                 const propertyData = response.data;
                 setFormData(propertyData);
                 setProperty(propertyData);
-
 
                 if (!propertyData.conversation) {
                     propertyData.conversation = [];
@@ -92,49 +91,50 @@ const PropertyEdit = () => {
         setNewConversation(e.target.value);
     };
 
-
     const handleChange = (e) => {
+        console.log ("handling change")
         const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        let updatedFormData = { ...formData, [name]: value };
+
+        // Automatically calculate rental yield if rental or asking price changes
+        if ((name === 'rental' || name === 'askingPrice') && updatedFormData.rental && updatedFormData.askingPrice) {
+            const numericRent = parseFloat(updatedFormData.rental);
+            const priceString = updatedFormData.askingPrice.toString().replace(/[^0-9.-]+/g, "");
+            const numericPrice = parseFloat(priceString);
+
+            if (!isNaN(numericRent) && !isNaN(numericPrice) && numericPrice > 0) {
+                const yieldValue = ((numericRent * 52) / numericPrice) * 100;
+                updatedFormData.rentalYield = yieldValue.toFixed(2) + "%";
+            }
+        }
+
+        setFormData(updatedFormData);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
-        // ✅ Extract Due Diligence Data Separately
         const { dueDiligence, ...propertyData } = formData;
-    
-        // ✅ Remove duplicate fields from propertyData (avoids sending `dueDiligence.insurance`)
-        Object.keys(dueDiligence).forEach(key => {
+
+        Object.keys(dueDiligence || {}).forEach(key => {
             if (propertyData.hasOwnProperty(`dueDiligence.${key}`)) {
                 delete propertyData[`dueDiligence.${key}`];
             }
         });
-    
+
         try {
-            // ✅ Update Due Diligence Separately (PATCH)
             if (dueDiligence) {
-                await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}/due-diligence`, {
-                    dueDiligence
-                });
+                await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}/due-diligence`, { dueDiligence });
             }
-    
-            // // ✅ Update Remaining Property Data (PUT)
             await axiosInstance.put(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`, propertyData);
-    
             setSuccessMessage("Property updated successfully!");
-            // navigate(`/properties/${id}`);
-    
         } catch (error) {
             console.error("Error updating property:", error);
             setMessage("Failed to update property.");
         }
     };
-    
 
     const handleConversationChange = (e) => {
         const lines = e.target.value.split('\n').filter((line) => line.trim() !== '');
-
         setFormData({
             ...formData,
             conversation: lines.map((line) => {
@@ -156,113 +156,35 @@ const PropertyEdit = () => {
             {message && <p className="mb-4 text-red-600 bg-red-100 p-2 rounded">{message}</p>}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-
-                
-                <PropertyFields 
-                    formData={formData} 
-                    setFormData={setFormData} 
-                    visibleSections={visibleSections} 
-                    readOnly={false} // ✅ Edit mode (Editable)
-                    propertyId={property?._id}  // ✅ Pass propertyId safely
-                    createdBy={property?.createdBy} // ✅ Pass createdBy safely
+                <PropertyFields
+                    formData={formData}
+                    setFormData={setFormData}
+                    visibleSections={config.visibleSections}
+                    readOnly={false}
+                    propertyId={property?._id}
+                    createdBy={property?.createdBy}
                     mode="edit"
+                    onChange={handleChange}
                 />
 
-
-                
-
-
-                <div className="mt-4 p-6  w-full max-w-6xl mx-auto">
+                <div className="mt-4 p-6 w-full max-w-6xl mx-auto">
                     <button
                         type="submit"
                         className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
                     >
                         Save Property
                     </button>
-                    {/* Success Message (Now Below Button) */}
-                    {/* Success & Error Messages */}
                     {successMessage && (
                         <p className="mt-4 text-lg text-green-700 bg-green-100 p-3 rounded-md border-l-4 border-green-500">
                             ✅ {successMessage}
                         </p>
                     )}
-
                     {message && (
                         <p className="mt-4 text-lg text-red-700 bg-red-100 p-3 rounded-md border-l-4 border-red-500">
                             {message}
                         </p>
                     )}
                 </div>
-
-
-                {/* Conversations Section */}
-                {/* <div className="border rounded-md p-4 bg-gray-50">
-                    <h3 className="text-lg font-bold mb-4">Conversations</h3>
-
-                   
-                    <div className="mb-4">
-                        <label className="block mb-2">Existing Conversations:</label>
-                        <textarea
-                            readOnly
-                            value={formData.conversation
-                                .map((conv) => `${new Date(conv.timestamp).toLocaleString()}: ${conv.content}`)
-                                .join('\n')}
-                            rows="6"
-                            className="w-full p-2 border border-gray-300 rounded-md bg-gray-100"
-                        ></textarea>
-                    </div>
-
-                   
-                    <div>
-                        <label className="block mb-2">Add New Conversation:</label>
-                        <textarea
-                            name="newConversation"
-                            value={newConversation}
-                            onChange={handleNewConversationChange}
-                            rows="3"
-                            className="w-full p-2 border border-gray-300 rounded-md"
-                            placeholder="Add new conversation (message only)"
-                        ></textarea>
-                    </div>
-                </div> */}
-
-
-
-                {/* Agent Information */}
-                {/* <div className="border rounded-md p-4 bg-gray-50">
-                    <h3 className="text-lg font-bold mb-4">Agent Information</h3>
-                    <div>
-                        <label className="block mb-2">Search Agent:</label>
-                        <input
-                            type="text"
-                            value={searchAgent}
-                            onChange={handleAgentSearch}
-                            className="w-full p-2 border border-gray-300 rounded-md"
-                            placeholder="Search for agent"
-                        />
-                        {filteredAgents.length > 0 && (
-                            <ul className="bg-white border border-gray-300 rounded-md mt-2 shadow-md max-h-40 overflow-y-auto">
-                                {filteredAgents.map((agent) => (
-                                    <li
-                                        key={agent._id}
-                                        className="p-2 hover:bg-gray-100 cursor-pointer"
-                                        onClick={() => handleAgentSelect(agent)}
-                                    >
-                                        {agent.name}, {agent.phoneNumber}, {agent.email}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                </div> */}
-
-                {/* Submit Button */}
-                {/* <button
-                    type="submit"
-                    className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-                >
-                    Save Changes
-                </button> */}
             </form>
         </div>
     );

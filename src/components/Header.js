@@ -41,11 +41,36 @@ const Header = ({ currentUser, onLogout }) => {
 
                 {/* Desktop Menu */}
                 <ul className="hidden md:flex space-x-6 items-center">
+                    {/* <li>
+                <NavLink
+                    to="/landing"
+                    className={({ isActive }) =>
+                    isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'
+                    }
+                >
+                    Home
+                </NavLink>
+                </li> */}
+
                     <li>
                         <NavLink to="/" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>
                             My Properties
                         </NavLink>
                     </li>
+
+                    {currentUser && (
+                        <li>
+                            <NavLink
+                                to="/client-briefs"
+                                className={({ isActive }) =>
+                                    isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'
+                                }
+                            >
+                                Client Briefs
+                            </NavLink>
+                        </li>
+                    )}
+
 
                     {currentUser?.role === 'admin' && (
                         <>
@@ -121,6 +146,16 @@ const Header = ({ currentUser, onLogout }) => {
                     <NavLink to="/" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">
                         My Properties
                     </NavLink>
+                    {currentUser && (
+                        <NavLink
+                            to="/client-briefs"
+                            onClick={() => setMenuOpen(false)}
+                            className="hover:text-blue-400"
+                        >
+                            Client Briefs
+                        </NavLink>
+                    )}
+
                     {currentUser?.role === 'admin' && (
                         <>
                             <NavLink to="/agents" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">Agent Management</NavLink>

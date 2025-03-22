@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axiosInstance from '../axiosInstance';
-import PropertyFields from './PropertyFields'; // ✅ Import PropertyFields
+import PropertyFields from './PropertyFields';
+import { PROPERTY_SECTION_CONFIGS } from '../config/propertySectionConfigs';
 
 const SharedPropertyPage = () => {
     const { shareToken } = useParams();
     const [property, setProperty] = useState(null);
     const [error, setError] = useState('');
 
-    const visibleSections = ["Basic Information", "Financial Information", "Property Details", "Due Diligence", "Additional Due Diligence"];
+    const config = PROPERTY_SECTION_CONFIGS.shared;
 
     useEffect(() => {
         const fetchProperty = async () => {
@@ -29,12 +30,11 @@ const SharedPropertyPage = () => {
         <div className="container mx-auto p-6">
             <h2 className="text-2xl font-bold mb-6">Shared Property Details</h2>
 
-            {/* ✅ Pass property data as read-only formData */}
             <PropertyFields 
-                formData={property}  // ✅ Use property directly as formData
-                setFormData={() => {}} // ✅ No need to update formData in view mode
-                visibleSections={visibleSections} 
-                readOnly={true} // ✅ Read-Only Mode
+                formData={property}
+                setFormData={() => {}} 
+                visibleSections={config.visibleSections}
+                readOnly={true}
                 mode="shared"
             />
         </div>
