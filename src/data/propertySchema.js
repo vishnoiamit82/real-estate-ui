@@ -7,7 +7,8 @@ const propertySchemaFields = {
         { key: "isOffmarket", label: "📉 Is Off-Market", type: "boolean" },
         { key: "offerClosingDate", label: "📅 Offer Closing Date", type: "text" },
         { key: "upcomingInspectionDate", label: "🔍 Upcoming Inspection", type: "text" },
-        { key: "videoAvailableDate", label: "🎥 Video Available Date", type: "text" }
+        { key: "videoAvailableDate", label: "🎥 Video Available Date", type: "text" },
+        { key: "subdivisionPotential", label: "Subdividable", type: "boolean" }
     ],
 
     "Financial Information": [

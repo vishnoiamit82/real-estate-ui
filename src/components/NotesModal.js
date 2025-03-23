@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from '../axiosInstance';
+import { logPropertyConversation } from '../utils/logPropertyConversation';
 
-const NotesModal = ({ property, onClose }) => {
+const NotesModal = ({ property, onClose, currentUser }) => {
     const [notes, setNotes] = useState([]);
     const [newNote, setNewNote] = useState("");
 
-    // Fetch existing notes when modal opens
     useEffect(() => {
         if (property) {
             fetchNotes();
@@ -27,8 +27,19 @@ const NotesModal = ({ property, onClose }) => {
             await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/properties/${property._id}/notes`, {
                 content: newNote,
             });
+            
+            // Log this note as a property conversation
+            await logPropertyConversation({
+                propertyId: property._id,
+                type: 'system-note',
+                subject: `Note added by ${currentUser?.name || 'User'}`,
+                message: newNote,
+                from: { name: currentUser?.name || '', email: currentUser?.email || '' }
+            });
+
             setNewNote("");
-            fetchNotes(); // Refresh notes after adding
+            fetchNotes();
+
         } catch (error) {
             console.error("Error adding note:", error);
         }
@@ -41,7 +52,6 @@ const NotesModal = ({ property, onClose }) => {
             <div className="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
                 <h2 className="text-xl font-bold mb-4">Notes for {property.address}</h2>
 
-                {/* Existing Notes */}
                 <div className="mb-4 max-h-60 overflow-y-auto bg-gray-100 p-3 rounded-md">
                     {notes.length > 0 ? (
                         notes.map((note, index) => (
@@ -57,7 +67,6 @@ const NotesModal = ({ property, onClose }) => {
                     )}
                 </div>
 
-                {/* Add New Note */}
                 <textarea
                     className="w-full p-2 border border-gray-300 rounded-md mb-2"
                     placeholder="Add a quick note..."

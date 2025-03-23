@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axiosInstance from '../axiosInstance';
 import { Link } from 'react-router-dom';
+import { logPropertyConversation } from '../utils/logPropertyConversation';
+import { useAuth } from './AuthContext';
 
 const EmailModal = ({ property, agent, templates, onClose }) => {
     const [selectedTemplate, setSelectedTemplate] = useState('');
@@ -10,7 +12,9 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
     const [ccEmail, setCcEmail] = useState('');
     const [toEmail, setToEmail] = useState(agent.email || '');
     const messageRef = useRef(null);
+    const { currentUser } = useAuth();
     
+
 
     useEffect(() => {
         document.body.classList.add("modal-open");
@@ -47,7 +51,7 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
             }, 500); // Delay ensures the content is rendered before scrolling
         }
     }, []);
-    
+
 
     // Load CC email after mount
     useEffect(() => {
@@ -97,6 +101,18 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
                 message: messageContent,
                 attachments
             });
+
+            // ✅ Log as a property conversation
+            await logPropertyConversation({
+                propertyId: property._id,
+                type: 'sent',
+                subject,
+                message: messageContent,
+                from: { name: currentUser?.name, email: currentUser?.email },
+                to: { name: agent?.name, email: toEmail },
+                attachments: attachments.map(file => file.filename)
+            });
+
             alert('Email sent successfully!');
             onClose();
         } catch (error) {
@@ -123,7 +139,7 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 modal-backdrop p-4">
             <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-content">
-                
+
                 {/* Header */}
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Send Email to {agent.name}</h2>
@@ -135,8 +151,8 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
                 {/* Property Address */}
                 <p className="text-gray-700 dark:text-gray-300"><strong>Property:</strong> {property.address}</p>
 
-                 {/* Due Diligence Completed Message */}
-                 {isDueDiligenceRequired && isDueDiligenceComplete && (
+                {/* Due Diligence Completed Message */}
+                {isDueDiligenceRequired && isDueDiligenceComplete && (
                     <div className="bg-green-100 text-green-700 p-3 rounded-md mt-3">
                         <p><strong>Due Diligence Completed:</strong> All required checks have been successfully completed. You can proceed with sending the offer email.</p>
                     </div>
@@ -146,8 +162,8 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
                 {isDueDiligenceRequired && !isDueDiligenceComplete && (
                     <div className="bg-yellow-100 text-yellow-700 p-3 rounded-md mt-3">
                         <p><strong>Due Diligence Required:</strong> Please complete all due diligence checks before sending this offer email.</p>
-                        <Link 
-                            to={`/edit-property/${property._id}#due-diligence`} 
+                        <Link
+                            to={`/edit-property/${property._id}#due-diligence`}
                             className="text-blue-500 underline hover:text-blue-700"
                         >
                             Go to Due Diligence Section
@@ -208,21 +224,21 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
 
                 {/* Actions */}
                 <div className="flex justify-end mt-6 space-x-3">
-                    <button 
-                        onClick={onClose} 
+                    <button
+                        onClick={onClose}
                         className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition"
                     >
                         Cancel
                     </button>
 
-                {/* Send Email Button */}
-                <button
-                    onClick={handleSendEmail}
-                    className={`px-4 py-2 text-white rounded-md ${isDueDiligenceRequired && !isDueDiligenceComplete ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500'}`}
-                    disabled={isDueDiligenceRequired && !isDueDiligenceComplete}
-                >
-                    {isDueDiligenceRequired && !isDueDiligenceComplete ? 'Complete Due Diligence First' : 'Send Email'}
-                </button>
+                    {/* Send Email Button */}
+                    <button
+                        onClick={handleSendEmail}
+                        className={`px-4 py-2 text-white rounded-md ${isDueDiligenceRequired && !isDueDiligenceComplete ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500'}`}
+                        disabled={isDueDiligenceRequired && !isDueDiligenceComplete}
+                    >
+                        {isDueDiligenceRequired && !isDueDiligenceComplete ? 'Complete Due Diligence First' : 'Send Email'}
+                    </button>
 
                 </div>
             </div>

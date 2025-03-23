@@ -82,6 +82,14 @@ import {
         type: 'primary',
         onClick: () => handleSaveToMyList(property._id),
       });
+
+      actions.push({
+        label: 'View',
+        icon: Eye,
+        type: 'primary',
+        onClick: () => navigate(`/properties/${property._id}`),
+      });
+      
   
       actions.push({
         label: 'Message Poster',
@@ -127,7 +135,7 @@ import {
         label: 'View/Edit',
         icon: Edit2,
         type: 'primary',
-        onClick: () => navigate(`/edit-property/${property._id}`),
+        onClick: () => navigate(`/properties/${property._id}`),
       });
   
       actions.push({

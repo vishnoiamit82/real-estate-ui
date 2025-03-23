@@ -81,6 +81,31 @@ const PropertySourcingPage = () => {
         }
     };
 
+    const handlePursueCommunityProperty = async (property) => {
+        try {
+          let savedId = property.savedId;
+      
+          // 1. Auto-save if not already saved
+          if (!savedId || property.source !== 'saved') {
+            const response = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/saved-properties`, {
+              communityPropertyId: property._id,
+            });
+      
+            savedId = response.data._id;
+          }
+      
+          // 2. Update decision status
+          await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/saved-properties/${savedId}/decision`, {
+            decisionStatus: 'pursue',
+          });
+      
+          toast.success('Marked as pursued!');
+        } catch (error) {
+          console.error('Error pursuing community property:', error);
+          toast.error('Failed to pursue property.');
+        }
+      };
+
 
     const getFilteredProperties = () => {
         const all = [...createdProperties, ...savedProperties];
@@ -378,6 +403,7 @@ const PropertySourcingPage = () => {
                         deleteProperty={deleteProperty}
                         restoreProperty={restoreProperty}
                         deleteSavedProperty={deleteSavedProperty}
+                        handlePursueCommunityProperty={handlePursueCommunityProperty}
                         currentUser={currentUser}
                     />
                 ) : (

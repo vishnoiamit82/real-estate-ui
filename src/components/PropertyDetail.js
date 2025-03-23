@@ -4,6 +4,7 @@ import axiosInstance from '../axiosInstance';
 import DueDiligenceChecklist from './DueDiligenceChecklist';
 import PropertyFields from "./PropertyFields";
 import { PROPERTY_SECTION_CONFIGS } from '../config/propertySectionConfigs';
+import PropertyConversationLog from './PropertyConversationLog';
 
 const PropertyDetail = () => {
     const { id } = useParams();
@@ -15,6 +16,7 @@ const PropertyDetail = () => {
     const [message, setMessage] = useState('');
     const [smsMessage, setSmsMessage] = useState('');
     const [smsStatus, setSmsStatus] = useState('');
+    const [showInitialConversation, setShowInitialConversation] = useState(false);
 
     const displayMode = location.pathname.includes('/shared/') ? 'shared' : 'full';
     const config = PROPERTY_SECTION_CONFIGS[displayMode];
@@ -88,27 +90,32 @@ const PropertyDetail = () => {
             {config.showCommLog && (
                 <div className="p-4 border rounded-md bg-gray-50 mt-6">
                     <h3 className="text-xl font-semibold mb-2">📬 Communication Log</h3>
-                    {property.conversation?.length > 0 ? (
-                        <ul className="space-y-2 text-sm">
-                            {property.conversation.map((conv, idx) => (
-                                <li key={idx} className="border-b pb-2">
-                                    <p className="text-gray-700 whitespace-pre-wrap">{conv.content}</p>
-                                    <p className="text-xs text-gray-500">{new Date(conv.timestamp).toLocaleString()}</p>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-sm text-gray-500">No communication history yet.</p>
+                    <PropertyConversationLog propertyId={property._id} />
+
+                    {/* Toggle button for initial description */}
+                    {property.conversation?.length > 0 && (
+                        <div className="mt-4">
+                            <button
+                                onClick={() => setShowInitialConversation(!showInitialConversation)}
+                                className="text-sm text-blue-600 underline hover:text-blue-800"
+                            >
+                                {showInitialConversation ? 'Hide Initial Property Description' : 'Show Initial Property Description'}
+                            </button>
+
+                            {showInitialConversation && (
+                                <ul className="space-y-2 text-sm mt-2">
+                                    {property.conversation.map((conv, idx) => (
+                                        <li key={idx} className="border-b pb-2">
+                                            <p className="text-gray-700 whitespace-pre-wrap">{conv.content}</p>
+                                            <p className="text-xs text-gray-500">{new Date(conv.timestamp).toLocaleString()}</p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
                     )}
                 </div>
             )}
-
-            {/* {config.showDueDiligenceChecklist && (
-                <div id="due-diligence" className="mt-6">
-                    <h2 className="text-2xl font-semibold mb-4">Due Diligence Checklist</h2>
-                    <DueDiligenceChecklist propertyId={property._id} createdBy={property.createdBy?._id} />
-                </div>
-            )} */}
         </div>
     );
 };

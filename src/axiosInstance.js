@@ -3,105 +3,114 @@ import axios from 'axios';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 
-// Spinner tracking variables
 let activeRequests = 0;
 let startProgressTimeout = null;
 let spinnerStartTime = null;
 let setGlobalLoading = null;
 
-
-// Create an Axios instance
 const axiosInstance = axios.create({
-    baseURL: process.env.REACT_APP_API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json'
-    }
+  baseURL: process.env.REACT_APP_API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
-// Define which endpoints require authentication
 const protectedEndpoints = [
-    '/api/users',
-    '/api/properties',
-    '/api/agents',
-    '/api/client-briefs',
-    '/api/email-templates',
-    '/api/email-replies',
-    '/api/process-description',
-    '/api/buyers-agents',
-    '/api/follow-up-tasks',
-    '/api/cashflow',
-    '/api/send-email',
-    '/api/saved-properties'
+  '/api/users',
+  '/api/properties',
+  '/api/agents',
+  '/api/client-briefs',
+  '/api/email-templates',
+  '/api/email-replies',
+  '/api/process-description',
+  '/api/buyers-agents',
+  '/api/follow-up-tasks',
+  '/api/cashflow',
+  '/api/send-email',
+  '/api/saved-properties',
+  '/api/property-conversation'
 ];
 
-// Attach spinner interceptor setup
 export const attachSpinnerInterceptor = (setLoadingFn) => {
-    setGlobalLoading = setLoadingFn;
+  setGlobalLoading = setLoadingFn;
 };
 
-// Spinner-enhanced request interceptor (add spinner + auth logic)
+// Helper to check if token is expired
+const isTokenExpired = (token) => {
+  try {
+    const decoded = JSON.parse(atob(token.split('.')[1]));
+    return decoded.exp * 1000 < Date.now();
+  } catch (err) {
+    return true;
+  }
+};
+
 axiosInstance.interceptors.request.use(
-    async (config) => {
-        // Spinner logic
-        activeRequests++;
+  async (config) => {
+    activeRequests++;
+    if (activeRequests === 1) {
+      startProgressTimeout = setTimeout(() => {
+        NProgress.start();
+      }, 300);
+    }
 
-        // Delay start to prevent flashing bar on fast requests
-        if (activeRequests === 1) {
-            startProgressTimeout = setTimeout(() => {
-            NProgress.start();
-          
-            }, 300);
-        }
-        // if (process.env.NODE_ENV === 'development') {
-        //     await new Promise((res) => setTimeout(res, 1500)); // force delay
-        // }
+    spinnerStartTime = Date.now();
 
-        spinnerStartTime = Date.now();
+    const token = localStorage.getItem('authToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+    const requestUrl = new URL(config.url, process.env.REACT_APP_API_BASE_URL).pathname;
+    const isProtected = protectedEndpoints.some((endpoint) => requestUrl.startsWith(endpoint));
 
-        // Authorization logic
-        const token = localStorage.getItem('authToken');
-        console.log('Auth Token in Interceptor:', token);
-        console.log('Request URL in Interceptor:', config.url);
+    if (isProtected && token && isTokenExpired(token)) {
+      try {
+        const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/auth/refresh`, {
+          refreshToken
+        });
 
-        const requestUrl = new URL(config.url, process.env.REACT_APP_API_BASE_URL).pathname;
-        console.log('Normalized Request URL:', requestUrl);
-
-        const isProtected = protectedEndpoints.some((endpoint) =>
-            requestUrl.startsWith(endpoint)
-        );
-
-        if (isProtected && token) {
-            config.headers['Authorization'] = `Bearer ${token}`;
-        } else if (isProtected && !token) {
-            console.warn('Protected route, but no token found!');
-        }
-
-        console.log('Request Config Before Sending:', config);
-
-        return config;
-    },
-    (error) => {
-        activeRequests = Math.max(0, activeRequests - 1);
-        clearTimeout(startProgressTimeout);
-        if (activeRequests === 0) NProgress.done();
-        return Promise.reject(error);
+        const { newAuthToken } = response.data;
+        localStorage.setItem('authToken', newAuthToken);
+        config.headers['Authorization'] = `Bearer ${newAuthToken}`;
+      } catch (err) {
+        console.error('Token refresh failed. Redirecting to login.');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/login';
       }
+    } else if (isProtected && token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    activeRequests = Math.max(0, activeRequests - 1);
+    clearTimeout(startProgressTimeout);
+    if (activeRequests === 0) NProgress.done();
+    return Promise.reject(error);
+  }
 );
 
-// Response interceptor (add spinner hide logic + auth error handling)
 axiosInstance.interceptors.response.use(
-    (response) => {
-      activeRequests = Math.max(0, activeRequests - 1);
-      clearTimeout(startProgressTimeout);
-      if (activeRequests === 0) NProgress.done();
-      return response;
-    },
-    (error) => {
-      activeRequests = Math.max(0, activeRequests - 1);
-      clearTimeout(startProgressTimeout);
-      if (activeRequests === 0) NProgress.done();
-      return Promise.reject(error);
+  (response) => {
+    activeRequests = Math.max(0, activeRequests - 1);
+    clearTimeout(startProgressTimeout);
+    if (activeRequests === 0) NProgress.done();
+    return response;
+  },
+  (error) => {
+    activeRequests = Math.max(0, activeRequests - 1);
+    clearTimeout(startProgressTimeout);
+    if (activeRequests === 0) NProgress.done();
+
+    if (error.response?.status === 401) {
+      console.warn('Unauthorized access. Redirecting to login.');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/login';
     }
-  );
+
+    return Promise.reject(error);
+  }
+);
 
 export default axiosInstance;

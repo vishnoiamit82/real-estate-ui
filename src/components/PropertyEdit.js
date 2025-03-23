@@ -92,24 +92,35 @@ const PropertyEdit = () => {
     };
 
     const handleChange = (e) => {
-        console.log ("handling change")
+        console.log("handling change");
         const { name, value } = e.target;
         let updatedFormData = { ...formData, [name]: value };
-
-        // Automatically calculate rental yield if rental or asking price changes
+    
+        // Normalize and calculate rental yield
         if ((name === 'rental' || name === 'askingPrice') && updatedFormData.rental && updatedFormData.askingPrice) {
-            const numericRent = parseFloat(updatedFormData.rental);
+            // ✅ Normalize rental string: extract first numeric value from "$550-$600 per week"
+            let numericRent = null;
+            if (typeof updatedFormData.rental === 'string') {
+                const rentMatch = updatedFormData.rental.match(/[\d,\.]+/);
+
+                if (rentMatch) numericRent = parseFloat(rentMatch[0].replace(/,/g, ''));
+            } else if (typeof updatedFormData.rental === 'number') {
+                numericRent = updatedFormData.rental;
+            }
+    
+            // ✅ Normalize asking price string
             const priceString = updatedFormData.askingPrice.toString().replace(/[^0-9.-]+/g, "");
             const numericPrice = parseFloat(priceString);
-
+    
             if (!isNaN(numericRent) && !isNaN(numericPrice) && numericPrice > 0) {
                 const yieldValue = ((numericRent * 52) / numericPrice) * 100;
                 updatedFormData.rentalYield = yieldValue.toFixed(2) + "%";
             }
         }
-
+    
         setFormData(updatedFormData);
     };
+    
 
     const handleSubmit = async (e) => {
         e.preventDefault();

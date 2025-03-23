@@ -119,7 +119,61 @@ const ClientBriefForm = ({  }) => {
                 </div>
                     <div className="grid grid-cols-1 gap-4"><input placeholder="Budget Max ($)" type="number" value={formData.budgetMax} onChange={e => setFormData({ ...formData, budgetMax: e.target.value })} className="p-3 border rounded-md" /><input placeholder="Preferred Locations" value={formData.preferredLocations} onChange={e => setFormData({ ...formData, preferredLocations: e.target.value })} className="p-3 border rounded-md" /><p className="text-xs text-gray-500 -mt-2">e.g., Suburb (Parramatta), Region (Western Sydney), or State (NSW)</p><input placeholder="Minimum Bedrooms" type="number" value={formData.bedrooms} onChange={e => setFormData({ ...formData, bedrooms: e.target.value })} className="p-3 border rounded-md" /><input placeholder="Minimum Bathrooms" type="number" value={formData.bathrooms} onChange={e => setFormData({ ...formData, bathrooms: e.target.value })} className="p-3 border rounded-md" /></div></fieldset>);
             case 3:
-                return (<fieldset className="border p-4 rounded-md mb-4"><legend className="font-semibold mb-2">Advanced Criteria</legend><div className="grid grid-cols-1 gap-4"><input placeholder="Minimum Gross Yield (%)" type="number" value={formData.minYield} onChange={e => setFormData({ ...formData, minYield: e.target.value })} className="p-3 border rounded-md" /><input placeholder="Maximum holding cost/month if negatively geared ($)" type="number" value={formData.maxMonthlyHoldingCost} onChange={e => setFormData({ ...formData, maxMonthlyHoldingCost: e.target.value })} className="p-3 border rounded-md" /><input placeholder="Minimum Build Year" type="number" value={formData.minBuildYear} onChange={e => setFormData({ ...formData, minBuildYear: e.target.value })} className="p-3 border rounded-md" /><label className="block font-medium">Entity you are purchasing in:</label><select value={formData.entityType} onChange={e => setFormData({ ...formData, entityType: e.target.value })} className="p-3 border rounded-md"><option value="">Select Entity</option><option value="Trust">Trust</option><option value="SMSF">SMSF</option><option value="Individual">Individual</option><option value="Not decided">Not decided yet</option></select></div></fieldset>);
+                return (
+                    <fieldset className="border p-4 rounded-md mb-4">
+                        <legend className="font-semibold mb-2">Advanced Criteria</legend>
+                        <div className="grid grid-cols-1 gap-4">
+                            <input
+                                placeholder="Minimum Gross Yield (%)"
+                                type="number"
+                                value={formData.minYield}
+                                onChange={e => setFormData({ ...formData, minYield: e.target.value })}
+                                className="p-3 border rounded-md"
+                            />
+                            <input
+                                placeholder="Maximum holding cost/month if negatively geared ($)"
+                                type="number"
+                                value={formData.maxMonthlyHoldingCost}
+                                onChange={e => setFormData({ ...formData, maxMonthlyHoldingCost: e.target.value })}
+                                className="p-3 border rounded-md"
+                            />
+                            <input
+                                placeholder="Minimum Build Year"
+                                type="number"
+                                value={formData.minBuildYear}
+                                onChange={e => setFormData({ ...formData, minBuildYear: e.target.value })}
+                                className="p-3 border rounded-md"
+                            />
+                            <input
+                                placeholder="Interest Rate (%)"
+                                type="number"
+                                value={formData.interestRate}
+                                onChange={e => setFormData({ ...formData, interestRate: e.target.value })}
+                                className="p-3 border rounded-md"
+                            />
+                            <input
+                                placeholder="Loan-to-Value Ratio (LVR %)"
+                                type="number"
+                                value={formData.lvr}
+                                onChange={e => setFormData({ ...formData, lvr: e.target.value })}
+                                className="p-3 border rounded-md"
+                            />
+                            <label className="block font-medium">Entity you are purchasing in:</label>
+                            <select
+                                value={formData.entityType}
+                                onChange={e => setFormData({ ...formData, entityType: e.target.value })}
+                                className="p-3 border rounded-md"
+                            >
+                                <option value="">Select Entity</option>
+                                <option value="Trust">Trust</option>
+                                <option value="SMSF">SMSF</option>
+                                <option value="Individual">Individual</option>
+                                <option value="Not decided">Not decided yet</option>
+                            </select>
+                        </div>
+                    </fieldset>
+                );
+            
             case 4:
                 return (<fieldset className="border p-4 rounded-md mb-4"><legend className="font-semibold mb-2">Criteria Importance</legend><div className="grid grid-cols-1 gap-4">{Object.entries(formData.weightage).map(([key, val]) => (<div key={key}><label className="capitalize font-medium">{key.replace(/([A-Z])/g, ' $1')}</label><input type="range" min="1" max="5" value={val} onChange={e => setFormData({ ...formData, weightage: { ...formData.weightage, [key]: parseInt(e.target.value) } })} className="w-full accent-blue-500" /><div className="text-right text-sm text-gray-600">{getWeightLabel(val)} Priority</div></div>))}</div></fieldset>);
             case 5:
