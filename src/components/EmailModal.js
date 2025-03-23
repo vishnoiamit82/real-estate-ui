@@ -155,7 +155,7 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
                 {/* Due Diligence Completed Message */}
                 {isDueDiligenceRequired && isDueDiligenceComplete && (
                     <div className="bg-green-100 text-green-700 p-3 rounded-md mt-3">
-                        <p><strong>Due Diligence Completed:</strong> All required checks have been successfully completed. You can proceed with sending the offer email.</p>
+                        <p><strong>Due Diligence Completed:</strong> All required checks have been successfully completed. You can proceed with sending the offer email</p>
                     </div>
                 )}
 
