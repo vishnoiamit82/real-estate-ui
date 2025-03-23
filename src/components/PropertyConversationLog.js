@@ -1,4 +1,4 @@
-// ✅ PropertyConversationLog.js - Reusable UI Component to Display Conversation Log per Property
+// ✅ PropertyConversationLog.js -  Reusable UI Component to Display Conversation Log per Property
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../axiosInstance';
 import { MessageCircle, Mail, FileText } from 'lucide-react';
