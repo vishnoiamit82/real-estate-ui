@@ -9,7 +9,7 @@ const AgentForm = () => {
         email: '',
         phoneNumber: '',
         agencyName: '', // New field
-        region: '', // New field
+        region: '', // New field 
     });
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
