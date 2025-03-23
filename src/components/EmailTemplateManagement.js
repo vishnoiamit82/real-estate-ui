@@ -25,7 +25,7 @@ const TemplateManagement = () => {
             }),
             Paragraph // Explicitly include the Paragraph extension
         ],
-        content: newTemplate.body || "<p>Write email content here with Dynamic placeholder..</p><p>Hi {{sales_agent_name}},</p><p>How are you?</p><p>I would like to enquire about {{property_address}}</p>",
+        content: newTemplate.body || "</p><p>Hi {{sales_agent_name}},</p><p>How are you?</p><p>I would like to enquire about {{property_address}}</p>",
         editorProps: {
             attributes: {
                 class: "prose prose-sm p-2 border rounded-md min-h-[150px] focus:outline-none" // Styling for better UX

@@ -99,7 +99,8 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
                 clientName: agent.name,
                 subject,
                 message: messageContent,
-                attachments
+                attachments,
+                propertyId: property._id
             });
 
             // ✅ Log as a property conversation
