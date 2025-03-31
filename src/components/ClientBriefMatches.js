@@ -9,22 +9,27 @@ import { MatchScoreBar, MatchedTags, HoldingCostSummary } from './MatchScoreComp
 const ClientBriefMatches = () => {
   const { briefId } = useParams();
   const [matches, setMatches] = useState([]);
+  const [matchCount, setMatchCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [expandedMatchIds, setExpandedMatchIds] = useState([]);
   const [showCostIds, setShowCostIds] = useState([]);
 
   useEffect(() => {
     if (!briefId) return setLoading(false);
+
     const fetchMatches = async () => {
       try {
         const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/client-briefs/${briefId}/matches`);
-        setMatches(response.data);
+        const sortedMatches = [...response.data.matches].sort((a, b) => b.score - a.score);
+        setMatches(sortedMatches);
+        setMatchCount(response.data.matchCount);
       } catch (error) {
         console.error('Error fetching matches:', error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchMatches();
   }, [briefId]);
 
@@ -43,7 +48,10 @@ const ClientBriefMatches = () => {
   if (!briefId) return <p className="text-center text-red-500">No Client Brief ID provided.</p>;
   if (loading) return <p>Loading matches...</p>;
 
-  matches.sort((a, b) => b.score - a.score);
+
+
+
+  // matches.sort((a, b) => b.score - a.score);
   
   const groupedMatches = {
     '✅ Perfect Match': [],

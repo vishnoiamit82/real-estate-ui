@@ -19,21 +19,40 @@ const ClientBriefDashboard = () => {
   const [filterBy, setFilterBy] = useState('all');
   const [inviteLink, setInviteLink] = useState('');
   const navigate = useNavigate();
+  const [matchCounts, setMatchCounts] = useState({});
 
-  console.log ('Dashboard', currentUser)
- 
+
+  console.log('Dashboard', currentUser)
+
 
   useEffect(() => {
     const fetchClientBriefs = async () => {
       try {
         const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/client-briefs`);
-        setClientBriefs(response.data);
+        const briefs = response.data;
+        setClientBriefs(briefs);
+
+        // Fetch match counts in parallel
+        const counts = {};
+        await Promise.all(
+          briefs.map(async (brief) => {
+            try {
+              const res = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/client-briefs/${brief._id}/matches`);
+              counts[brief._id] = res.data?.matchCount || 0;
+            } catch (err) {
+              console.error(`Error fetching match count for ${brief._id}`, err);
+              counts[brief._id] = 0;
+            }
+          })
+        );
+        setMatchCounts(counts);
       } catch (error) {
         console.error('Error fetching client briefs:', error);
       }
     };
     fetchClientBriefs();
   }, []);
+
 
   useEffect(() => {
     if (currentUser && currentUser.id) {
@@ -128,6 +147,7 @@ const ClientBriefDashboard = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredBriefs.map((brief) => {
+
             const tag = getOwnershipTag(brief);
             return (
               <div key={brief._id} className="border rounded-lg p-4 shadow-sm bg-white">
@@ -137,12 +157,19 @@ const ClientBriefDashboard = () => {
                     <span className={`text-xs px-2 py-1 rounded font-medium ${tag.color}`}>{tag.label}</span>
                   )}
                 </div>
+
                 <p className="text-sm text-gray-600">Email: {brief.email}</p>
                 <p className="text-sm text-gray-600">Phone: {brief.phoneNumber}</p>
                 <p className="text-sm text-gray-600">Address: {brief.address}</p>
                 <p className="text-sm text-gray-600">Strategy: {brief.investmentStrategy}</p>
                 <p className="text-sm text-gray-600">Interest Rate: {brief.interestRate}%</p>
                 <p className="text-sm text-gray-600">Locations: {brief.preferredLocations?.join(', ')}</p>
+                {matchCounts[brief._id] > 0 && (
+                  <p className="text-sm text-green-600 font-medium mt-2">
+                    💡 {matchCounts[brief._id]} properties match above 80%
+                  </p>
+                )}
+
                 <div className="flex gap-2 mt-3">
                   <button onClick={() => navigate(`/client-briefs/${brief._id}/matches`)} className="text-blue-500 hover:text-blue-700">
                     <Eye size={18} />
