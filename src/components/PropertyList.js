@@ -7,6 +7,10 @@ import EmailModal from './EmailModal';
 import PropertyCardList from './PropertyTable';
 import { PlusCircle, UserPlus, Filter, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'react-toastify';
+import PropertyFilterBar from './PropertyFilterBar';
+import LoadingSpinner from './LoadingSpinner';
+
+
 
 const PropertySourcingPage = () => {
     const [createdProperties, setCreatedProperties] = useState([]);
@@ -27,27 +31,69 @@ const PropertySourcingPage = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('created'); // default to Created tab
 
+    const [loadingCreated, setLoadingCreated] = useState(true);
+    const [loadingSaved, setLoadingSaved] = useState(true);
+
+
 
 
     useEffect(() => {
         fetchCreatedProperties();
         fetchSavedProperties();
         fetchEmailTemplates();
-    }, []);
+        setCurrentPage(1);
+    }, [currentFilter]);
+
+    const getStatusQueryFromFilter = (filter) => {
+        switch (filter) {
+            case 'pursue':
+                return 'pursue';
+            case 'on_hold':
+                return 'on_hold';
+            case 'undecided':
+                return 'undecided';
+            case 'active':
+                return 'pursue,undecided';
+            case 'all':
+                return 'pursue,undecided,on_hold,deleted';
+            default:
+                return ''; // 'all' or 'deleted'
+        }
+    };
+
+    const fetchCreatedProperties = async () => {
+        setLoadingCreated(true);
+        try {
+            const statusQuery = getStatusQueryFromFilter(currentFilter);
+            const isDeleted = currentFilter === 'deleted' ? 'true' : 'false';
+
+            console.log('[FETCH] calling with filter:', currentFilter, '→', statusQuery, '| is_deleted:', isDeleted);
+
+            const queryParams = new URLSearchParams();
+            queryParams.append('mine', 'true');
+            queryParams.append('is_deleted', isDeleted);
+            if (statusQuery) queryParams.append('status', statusQuery);
+
+            const response = await axiosInstance.get(
+                `${process.env.REACT_APP_API_BASE_URL}/properties?${queryParams.toString()}`
+            );
+
+            setCreatedProperties(response.data.map((p) => ({ ...p, source: 'created' })));
+        } catch (error) {
+            console.error('Error fetching created properties:', error);
+        } finally {
+            setLoadingCreated(false);
+        }
+    };
+
+
+
 
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     console.log("current User in Property List", currentUser)
 
-    const fetchCreatedProperties = async () => {
-        try {
-            const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/properties?mine=true`);
-            setCreatedProperties(response.data.map(p => ({ ...p, source: 'created' })));
-        } catch (error) {
-            console.error('Error fetching created properties:', error);
-        }
-    };
-
     const deleteSavedProperty = async (savedId) => {
+        
         try {
             await axiosInstance.delete(`${process.env.REACT_APP_API_BASE_URL}/saved-properties/${savedId}`);
             toast.success("Property removed from your saved list.");
@@ -60,6 +106,7 @@ const PropertySourcingPage = () => {
 
 
     const fetchSavedProperties = async () => {
+        setLoadingSaved(true);
         try {
             const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/saved-properties`);
 
@@ -69,6 +116,9 @@ const PropertySourcingPage = () => {
         } catch (error) {
             console.error('Error fetching saved properties:', error);
         }
+        finally {
+            setLoadingSaved(false);
+          }
     };
 
 
@@ -83,28 +133,28 @@ const PropertySourcingPage = () => {
 
     const handlePursueCommunityProperty = async (property) => {
         try {
-          let savedId = property.savedId;
-      
-          // 1. Auto-save if not already saved
-          if (!savedId || property.source !== 'saved') {
-            const response = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/saved-properties`, {
-              communityPropertyId: property._id,
+            let savedId = property.savedId;
+
+            // 1. Auto-save if not already saved
+            if (!savedId || property.source !== 'saved') {
+                const response = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/saved-properties`, {
+                    communityPropertyId: property._id,
+                });
+
+                savedId = response.data._id;
+            }
+
+            // 2. Update decision status
+            await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/saved-properties/${savedId}/decision`, {
+                decisionStatus: 'pursue',
             });
-      
-            savedId = response.data._id;
-          }
-      
-          // 2. Update decision status
-          await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/saved-properties/${savedId}/decision`, {
-            decisionStatus: 'pursue',
-          });
-      
-          toast.success('Marked as pursued!');
+
+            toast.success('Marked as pursued!');
         } catch (error) {
-          console.error('Error pursuing community property:', error);
-          toast.error('Failed to pursue property.');
+            console.error('Error pursuing community property:', error);
+            toast.error('Failed to pursue property.');
         }
-      };
+    };
 
 
     const getFilteredProperties = () => {
@@ -257,64 +307,17 @@ const PropertySourcingPage = () => {
             </div>
 
             {/* Filters, Search, Sort */}
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex items-center gap-2">
-                        <Filter className="w-5 h-5 text-gray-600" />
-                        <label className="text-sm">Filter:</label>
-                        <select
-                            value={currentFilter}
-                            onChange={(e) => {
-                                setCurrentFilter(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                            className="px-3 py-2 border rounded-lg bg-white border-gray-300"
-                        >
-                            <option value="active">Active Properties</option>
-                            <option value="pursue">Pursue</option>
-                            <option value="on_hold">On Hold</option>
-                            <option value="undecided">Undecided</option>
-                            <option value="all">All Properties</option>
-                            <option value="deleted">Deleted Only</option>
-                        </select>
-                    </div>
-
-                    <div className="relative">
-                        <Search className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
-                        <input
-                            type="text"
-                            placeholder="Search by address or agent..."
-                            value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value.toLowerCase());
-                                setCurrentPage(1);
-                            }}
-                            className="w-full p-2 pl-10 border rounded-lg bg-white border-gray-300"
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <label className="text-sm">Sort by:</label>
-                        <select
-                            value={sortKey}
-                            onChange={(e) => setSortKey(e.target.value)}
-                            className="px-2 py-2 border rounded-md"
-                        >
-                            <option value="createdAt">Created Date</option>
-                            <option value="offerClosingDate">Offer Closing Date</option>
-                            <option value="askingPrice">Price</option>
-                            <option value="rentalYield">Rental Yield</option>
-                        </select>
-
-                        <button
-                            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                            className="p-2 border rounded-md"
-                        >
-                            {sortOrder === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <PropertyFilterBar
+                currentFilter={currentFilter}
+                setCurrentFilter={setCurrentFilter}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                sortKey={sortKey}
+                setSortKey={setSortKey}
+                sortOrder={sortOrder}
+                setSortOrder={setSortOrder}
+                setCurrentPage={setCurrentPage}
+                />
 
             {/* Property Card Tabs */}
             <div className="mt-6">
@@ -322,17 +325,20 @@ const PropertySourcingPage = () => {
                 <div className="flex space-x-4 border-b border-gray-300 mb-4">
                     <button
                         onClick={() => setActiveTab('created')}
-                        className={`px-4 py-2 font-medium border-b-2 transition ${activeTab === 'created' ? 'text-blue-600 border-blue-600' : 'text-gray-500 border-transparent hover:text-blue-500'
+                        className={`px-4 py-2 font-medium border-b-2 transition ${activeTab === 'created'
+                                ? 'text-blue-600 border-blue-600'
+                                : 'text-gray-500 border-transparent hover:text-blue-500'
                             }`}
                     >
-
                         <span title="Only visible to you unless you share it with community.">
                             🔒 My Created Properties (Private)
                         </span>
                     </button>
                     <button
                         onClick={() => setActiveTab('saved')}
-                        className={`px-4 py-2 font-medium border-b-2 transition ${activeTab === 'saved' ? 'text-blue-600 border-blue-600' : 'text-gray-500 border-transparent hover:text-blue-500'
+                        className={`px-4 py-2 font-medium border-b-2 transition ${activeTab === 'saved'
+                                ? 'text-blue-600 border-blue-600'
+                                : 'text-gray-500 border-transparent hover:text-blue-500'
                             }`}
                     >
                         🌍 Saved from Community
@@ -341,10 +347,12 @@ const PropertySourcingPage = () => {
 
                 {/* Tab Content */}
                 {activeTab === 'created' ? (
-                    getFilteredProperties()
-                        .filter(prop => prop.source === 'created').length > 0 ? (
+                    loadingCreated ? (
+                        <LoadingSpinner message="Loading created properties..." />
+                    )
+                     : getFilteredProperties().filter((prop) => prop.source === 'created').length > 0 ? (
                         <PropertyCardList
-                            properties={getFilteredProperties().filter(prop => prop.source === 'created')}
+                            properties={getFilteredProperties().filter((prop) => prop.source === 'created')}
                             navigate={navigate}
                             updateDecisionStatus={(property, status) => handleUpdateDecisionStatus(property, status)}
                             setSelectedPropertyForEmail={setSelectedPropertyForEmail}
@@ -361,37 +369,25 @@ const PropertySourcingPage = () => {
                     ) : (
                         <div className="text-gray-600 text-sm leading-relaxed border border-dashed border-gray-300 p-5 rounded-md bg-gray-50 shadow-sm">
                             <p className="font-semibold text-gray-700 text-base mb-2">You haven't created any properties yet.</p>
-
-                            <p>
-                                🚀 Our goal is to help you manage <strong>end-to-end property sourcing</strong> — from discovery to sharing, shortlisting, email conversations, due diligence and beyond.
-                            </p>
-
-                            <p className="mt-2">
-                                You can easily <strong>copy-paste property details</strong> from SMS, WhatsApp, Facebook messages, Domain, RealEstate.com.au, or any other source — and turn them into structured listings in seconds.
-                            </p>
-
-                            <p className="mt-2">
-                                ✉️ Once added, you can share properties with the community, manage notes, track decision status, or even send emails to agents <strong>directly from the app</strong>.
-                            </p>
-
+                            <p>🚀 Our goal is to help you manage <strong>end-to-end property sourcing</strong> — from discovery to sharing, shortlisting, email conversations, due diligence and beyond.</p>
+                            <p className="mt-2">You can easily <strong>copy-paste property details</strong> from SMS, WhatsApp, Facebook messages, Domain, RealEstate.com.au, or any other source — and turn them into structured listings in seconds.</p>
+                            <p className="mt-2">✉️ Once added, you can share properties with the community, manage notes, track decision status, or even send emails to agents <strong>directly from the app</strong>.</p>
                             <button
                                 onClick={() => navigate('/add-property')}
                                 className="mt-4 inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition"
                             >
                                 ➕ Add Your First Property
                             </button>
-
                             <p className="mt-3 text-sm text-gray-500">
-                                Need inspiration? <span onClick={() => navigate('/community-board')} className="text-blue-600 hover:underline cursor-pointer">Explore what others are sharing →</span>
+                                Need inspiration? <span onClick={() => navigate('/public')} className="text-blue-600 hover:underline cursor-pointer">Explore what others are sharing →</span>
                             </p>
-
                         </div>
-
-
                     )
-                ) : getFilteredProperties().filter(prop => prop.source === 'saved').length > 0 ? (
+                ) : loadingSaved ? (
+                    <p className="text-sm text-gray-500">Loading saved properties...</p>
+                ) : getFilteredProperties().filter((prop) => prop.source === 'saved').length > 0 ? (
                     <PropertyCardList
-                        properties={getFilteredProperties().filter(prop => prop.source === 'saved')}
+                        properties={getFilteredProperties().filter((prop) => prop.source === 'saved')}
                         navigate={navigate}
                         updateDecisionStatus={(property, status) => handleUpdateDecisionStatus(property, status)}
                         setSelectedPropertyForEmail={setSelectedPropertyForEmail}
@@ -409,8 +405,8 @@ const PropertySourcingPage = () => {
                 ) : (
                     <p className="text-gray-500 text-sm">No saved properties from community yet.</p>
                 )}
-
             </div>
+
 
 
             {/* Notes Modal */}

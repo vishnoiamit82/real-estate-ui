@@ -28,7 +28,8 @@ const protectedEndpoints = [
   '/api/cashflow',
   '/api/send-email',
   '/api/saved-properties',
-  '/api/property-conversation'
+  '/api/property-conversation',
+  '/api/ai-search-queries'
 ];
 
 export const attachSpinnerInterceptor = (setLoadingFn) => {

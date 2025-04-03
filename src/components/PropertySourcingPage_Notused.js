@@ -4,6 +4,7 @@ import axiosInstance from '../axiosInstance';
 import PropertyCardList from './PropertyCardList';
 import Pagination from '@mui/material/Pagination';
 import { useNavigate } from 'react-router-dom';
+import PropertyFilterBar from './PropertyFilterBar';
 
 const PropertySourcingPage = () => {
   const [createdProperties, setCreatedProperties] = useState([]);
@@ -17,19 +18,56 @@ const PropertySourcingPage = () => {
 
   const navigate = useNavigate();
 
+  const getStatusQueryFromFilter = (filter) => {
+    switch (filter) {
+      case 'pursue':
+        return 'pursue';
+      case 'on_hold':
+        return 'on_hold';
+      case 'undecided':
+        return 'undecided';
+      case 'deleted':
+        return 'deleted';
+      case 'active':
+        return 'pursue,undecided,on_hold';
+      default:
+        return ''; // 'all'
+    }
+  };
+
+
   useEffect(() => {
-    fetchCreatedProperties();
     fetchSavedProperties();
+    fetchEmailTemplates();
   }, []);
+
+  useEffect(() => {
+    console.log("⏳ useEffect triggered for filter:", currentFilter);
+    fetchCreatedProperties();
+    setCurrentPage(1);
+  }, [currentFilter]);
+  
+
 
   const fetchCreatedProperties = async () => {
     try {
-      const response = await axiosInstance.get('/properties?mine=true');
-      setCreatedProperties(response.data.map(p => ({ ...p, source: 'created' })));
+      const statusQuery = getStatusQueryFromFilter(currentFilter);
+      console.log('[FETCH] calling with filter:', currentFilter, '→', statusQuery); // 👀 log this
+  
+      const queryParams = new URLSearchParams();
+      if (statusQuery) queryParams.append('status', statusQuery);
+      queryParams.append('mine', 'true');
+  
+      const response = await axiosInstance.get(
+        `${process.env.REACT_APP_API_BASE_URL}/properties?${queryParams.toString()}`
+      );
+      setCreatedProperties(response.data.map((p) => ({ ...p, source: 'created' })));
     } catch (error) {
       console.error('Error fetching created properties:', error);
     }
   };
+  
+
 
   const fetchSavedProperties = async () => {
     try {
@@ -64,8 +102,8 @@ const PropertySourcingPage = () => {
     const list = currentFilter === 'created'
       ? createdProperties
       : currentFilter === 'saved'
-      ? savedProperties
-      : [...createdProperties, ...savedProperties];
+        ? savedProperties
+        : [...createdProperties, ...savedProperties];
 
     const searched = list.filter((property) => {
       const address = property.address?.toLowerCase() || '';
@@ -95,7 +133,7 @@ const PropertySourcingPage = () => {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-center">
-        <h2 className="text-2xl font-bold mb-4">📁 Property Sourcing</h2>
+        <h2 className="text-2xl font-bold mb-4">📁 Property Sourcing Amit</h2>
         <div className="flex space-x-3">
           <button
             onClick={() => navigate('/add-property')}
@@ -107,62 +145,31 @@ const PropertySourcingPage = () => {
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4">
-        {['all', 'created', 'saved'].map((filter) => (
-          <button
-            key={filter}
-            onClick={() => {
-              setCurrentFilter(filter);
-              setCurrentPage(1);
-            }}
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
-              currentFilter === filter ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-            }`}
-          >
-            {filter === 'all' ? 'All Properties' : filter === 'created' ? 'Created' : 'Saved'}
-          </button>
-        ))}
 
-        <input
-          type="text"
-          placeholder="Search by address or agent..."
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value.toLowerCase());
-            setCurrentPage(1);
-          }}
-          className="px-3 py-2 border rounded-md ml-auto w-full md:w-64"
+        <PropertyFilterBar
+          currentFilter={currentFilter}
+          setCurrentFilter={setCurrentFilter}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          sortKey={sortKey}
+          setSortKey={setSortKey}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+          setCurrentPage={setCurrentPage}
         />
-
-        <select
-          value={sortKey}
-          onChange={(e) => setSortKey(e.target.value)}
-          className="px-2 py-2 border rounded-md"
-        >
-          <option value="createdAt">Created Date</option>
-          <option value="offerClosingDate">Offer Closing Date</option>
-          <option value="askingPrice">Price</option>
-          <option value="rentalYield">Rental Yield</option>
-        </select>
-
-        <button
-          onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-          className="px-3 py-2 border rounded-md"
-        >
-          {sortOrder === 'asc' ? '↑ ASC' : '↓ DESC'}
-        </button>
       </div>
 
       <PropertyCardList
         properties={paginatedProperties}
         navigate={navigate}
         updateDecisionStatus={(id, status, property) => handleUpdateDecisionStatus(property, status)}
-        setSelectedPropertyForEmail={() => {}}
-        setSelectedAgent={() => {}}
-        setSelectedPropertyForNotes={() => {}}
-        handleShareProperty={() => {}}
-        handleShareToCommunity={() => {}}
-        deleteProperty={() => {}}
-        restoreProperty={() => {}}
+        setSelectedPropertyForEmail={() => { }}
+        setSelectedAgent={() => { }}
+        setSelectedPropertyForNotes={() => { }}
+        handleShareProperty={() => { }}
+        handleShareToCommunity={() => { }}
+        deleteProperty={() => { }}
+        restoreProperty={() => { }}
       />
 
       <div className="mt-6 flex justify-center">

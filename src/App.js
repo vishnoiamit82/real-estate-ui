@@ -32,6 +32,7 @@ import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import LandingPage from './components/LandingPage';
 import { AuthContext } from './components/AuthContext';
+import AISearchQueryViewer from './components/AISearchQueryViewer'
 import { BrowserRouter } from 'react-router-dom';
 
 
@@ -152,6 +153,7 @@ function App() {
 
                 <Route path="/login" element={<LoginForm setCurrentUser={setCurrentUser} />} />
                 <Route path="/signup" element={<SignupForm />} />
+                <Route path="/public" element={<CommunityBoard />} />
                 <Route path="/" element={<ProtectedRoute><PropertyList /></ProtectedRoute>} />
                 <Route path="/add-property" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
                 <Route path="/properties/:id" element={<ProtectedRoute><PropertyDetail /></ProtectedRoute>} />
@@ -172,8 +174,7 @@ function App() {
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
                 <Route path="/user-management" element={<ProtectedRoute requiredRole="admin"><UserManagement /></ProtectedRoute>} />
                 <Route path="/agents" element={<ProtectedRoute requiredRole="admin"><AgentList /></ProtectedRoute>} />
-                <Route path="/community-board" element={<ProtectedRoute><CommunityBoard /></ProtectedRoute>} />
-
+                <Route path="/ai-search-queries" element={<ProtectedRoute requiredRole="admin"><AISearchQueryViewer /></ProtectedRoute>} />
 
                 <Route path="/saved-properties" element={<ProtectedRoute><SavedPropertiesPage /></ProtectedRoute>} />
 

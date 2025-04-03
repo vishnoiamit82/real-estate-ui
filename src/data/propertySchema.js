@@ -8,7 +8,11 @@ const propertySchemaFields = {
         { key: "offerClosingDate", label: "📅 Offer Closing Date", type: "text" },
         { key: "upcomingInspectionDate", label: "🔍 Upcoming Inspection", type: "text" },
         { key: "videoAvailableDate", label: "🎥 Video Available Date", type: "text" },
-        { key: "subdivisionPotential", label: "Subdividable", type: "boolean" }
+        { key: "subdivisionPotential", label: "Subdividable", type: "boolean" },
+        { key: "mapsLink", label: "🗺️ Google Maps Link", type: "text" },
+        { key: "tags", label: "🏷️ Tags", type: "array" }
+
+
     ],
 
     "Financial Information": [
@@ -34,10 +38,10 @@ const propertySchemaFields = {
     ],
 
     "Due Diligence": [
-        { key: "dueDiligence.insurance", label: "🛡️ Insurance Status", type: "dropdown", options: ["pending", "completed", "failed"] },
-        { key: "dueDiligence.floodZone", label: "🌊 Flood Zone Status", type: "dropdown", options: ["pending", "completed", "failed"] },
-        { key: "dueDiligence.bushfireZone", label: "🔥 Bushfire Zone Status", type: "dropdown", options: ["pending", "completed", "failed"] },
-        { key: "dueDiligence.socialHousing", label: "🏢 Social Housing Status", type: "dropdown", options: ["pending", "completed", "failed"] }
+        { key: "dueDiligence.insurance", label: "🛡️ Insurance Status", type: "dropdown", options: ["pending", "completed"] },
+        { key: "dueDiligence.floodZone", label: "🌊 Flood Zone Status", type: "dropdown", options: ["Not in flood zone", "In flood zone"] },
+        { key: "dueDiligence.bushfireZone", label: "🔥 Bushfire Zone Status", type: "dropdown", options: ["Not in bush fire zone", "In bush fire zone"] },
+        { key: "dueDiligence.socialHousing", label: "🏢 Social Housing Status", type: "dropdown", options: ["No immediate neighbours & less than 5 percent", "Immediate neighbours but less than 5 percent", "More than 5 percent with in 3 km."] }
     ],
 
     "Additional Due Diligence": [

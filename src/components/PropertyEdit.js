@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../axiosInstance';
 import PropertyFields from "./PropertyFields";
 import { PROPERTY_SECTION_CONFIGS } from '../config/propertySectionConfigs';
+import DescriptionProcessor from './DescriptionProcessor';
+
 
 const PropertyEdit = () => {
     const { id } = useParams();
@@ -31,6 +33,11 @@ const PropertyEdit = () => {
     const [successMessage, setSuccessMessage] = useState('');
     const [newConversation, setNewConversation] = useState('');
     const [property, setProperty] = useState(null);
+    const [showDescriptionProcessor, setShowDescriptionProcessor] = useState(false);
+    const [descriptionFromProcessor, setDescriptionFromProcessor] = useState('');
+    
+    
+
 
     const config = PROPERTY_SECTION_CONFIGS.full;
 
@@ -95,7 +102,7 @@ const PropertyEdit = () => {
         console.log("handling change");
         const { name, value } = e.target;
         let updatedFormData = { ...formData, [name]: value };
-    
+
         // Normalize and calculate rental yield
         if ((name === 'rental' || name === 'askingPrice') && updatedFormData.rental && updatedFormData.askingPrice) {
             // ✅ Normalize rental string: extract first numeric value from "$550-$600 per week"
@@ -107,42 +114,60 @@ const PropertyEdit = () => {
             } else if (typeof updatedFormData.rental === 'number') {
                 numericRent = updatedFormData.rental;
             }
-    
+
             // ✅ Normalize asking price string
             const priceString = updatedFormData.askingPrice.toString().replace(/[^0-9.-]+/g, "");
             const numericPrice = parseFloat(priceString);
-    
+
             if (!isNaN(numericRent) && !isNaN(numericPrice) && numericPrice > 0) {
                 const yieldValue = ((numericRent * 52) / numericPrice) * 100;
                 updatedFormData.rentalYield = yieldValue.toFixed(2) + "%";
             }
         }
-    
+
         setFormData(updatedFormData);
     };
-    
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         const { dueDiligence, ...propertyData } = formData;
-
+    
+        // Clean any nested dueDiligence fields from the flat payload
         Object.keys(dueDiligence || {}).forEach(key => {
             if (propertyData.hasOwnProperty(`dueDiligence.${key}`)) {
                 delete propertyData[`dueDiligence.${key}`];
             }
         });
-
+    
         try {
+            // Step 1: Save Due Diligence
             if (dueDiligence) {
                 await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}/due-diligence`, { dueDiligence });
             }
+    
+            // Step 2: Append description if used
+            if (descriptionFromProcessor.trim()) {
+                if (!propertyData.conversation) propertyData.conversation = [];
+    
+                propertyData.conversation.push({
+                    content: descriptionFromProcessor,
+                    timestamp: new Date().toISOString(),
+                });
+            }
+    
+            // Step 3: Update property
             await axiosInstance.put(`${process.env.REACT_APP_API_BASE_URL}/properties/${id}`, propertyData);
-            setSuccessMessage("Property updated successfully!");
+            setSuccessMessage('Property created successfully!');
+            setShowDescriptionProcessor(false); // 👈 hide the description area
+            
+            
         } catch (error) {
             console.error("Error updating property:", error);
             setMessage("Failed to update property.");
         }
     };
+    
 
     const handleConversationChange = (e) => {
         const lines = e.target.value.split('\n').filter((line) => line.trim() !== '');
@@ -165,6 +190,26 @@ const PropertyEdit = () => {
                 <p className="mb-4 text-green-600 bg-green-100 p-2 rounded">{successMessage}</p>
             )}
             {message && <p className="mb-4 text-red-600 bg-red-100 p-2 rounded">{message}</p>}
+
+            <div className="mb-6">
+                <button
+                    onClick={() => setShowDescriptionProcessor(!showDescriptionProcessor)}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                    {showDescriptionProcessor ? "Cancel Description Edit" : "Edit by Property Description"}
+                </button>
+            </div>
+
+            {showDescriptionProcessor && (
+                <DescriptionProcessor
+                    formData={formData}
+                    setFormData={setFormData}
+                    onMessage={setMessage}
+                    onDescriptionProcessed={(desc) => setDescriptionFromProcessor(desc)}
+                />
+            )}
+
+
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <PropertyFields

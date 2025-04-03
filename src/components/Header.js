@@ -78,12 +78,13 @@ const Header = ({ currentUser, onLogout }) => {
                             <li><NavLink to="/dashboard" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>Dashboard</NavLink></li>
                             <li><NavLink to="/cashflow-calculator" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>Cashflow Calculator</NavLink></li>
                             <li><NavLink to="/user-management" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>User Management</NavLink></li>
+                            <NavLink to="/ai-search-queries" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">AI Search Query Viewer</NavLink>
                         </>
                     )}
 
                     {currentUser && (
                         <li>
-                            <NavLink to="/community-board" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>
+                            <NavLink to="/public" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>
                                 Community Properties
                             </NavLink>
                         </li>
@@ -162,10 +163,11 @@ const Header = ({ currentUser, onLogout }) => {
                             <NavLink to="/dashboard" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">Dashboard</NavLink>
                             <NavLink to="/cashflow-calculator" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">Cashflow Calculator</NavLink>
                             <NavLink to="/user-management" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">User Management</NavLink>
+                            <NavLink to="/ai-search-queries" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">AI Search Query Viewer</NavLink>
                         </>
                     )}
                     {currentUser && (
-                        <NavLink to="/community-board" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">Community Properties</NavLink>
+                        <NavLink to="/public" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">Community Properties</NavLink>
                     )}
 
                     {currentUser && (

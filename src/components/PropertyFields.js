@@ -167,32 +167,36 @@ const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = fal
                                             />
                                         )}
 
-                                        {/* ✅ Dropdown Fields */}
+                                        {/* ✅ Flexible Dropdown with Text Support */}
                                         {type === "dropdown" && (
-                                            <select
-                                                name={key}
-                                                value={getNestedValue(formData, key) || ""}
-                                                onChange={(e) => {
-                                                    if (!readOnly) {
-                                                        const updatedForm = { ...formData };
-                                                        setNestedValue(updatedForm, key, e.target.value);
-                                                        setFormData(updatedForm);
-                                                    }
-                                                }}
-                                                className={`w-full p-2 rounded-md focus:ring focus:ring-blue-300 ${readOnly
-                                                        ? "bg-gray-100 border-none cursor-default"
-                                                        : "border border-gray-300"
+                                            <>
+                                                <input
+                                                    list={`${key}-options`}
+                                                    name={key}
+                                                    value={getNestedValue(formData, key) || ""}
+                                                    onChange={(e) => {
+                                                        if (!readOnly) {
+                                                            const updatedForm = { ...formData };
+                                                            setNestedValue(updatedForm, key, e.target.value);
+                                                            setFormData(updatedForm);
+                                                        }
+                                                    }}
+                                                    className={`w-full p-2 rounded-md focus:ring focus:ring-blue-300 ${
+                                                        readOnly
+                                                            ? "bg-gray-100 border-none cursor-default"
+                                                            : "border border-gray-300"
                                                     }`}
-                                                disabled={readOnly}
-                                            >
-                                                <option value="">Select</option>
-                                                {options.map((option) => (
-                                                    <option key={option} value={option}>
-                                                        {option}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                                    disabled={readOnly}
+                                                    placeholder="Select or type a value"
+                                                />
+                                                <datalist id={`${key}-options`}>
+                                                    {options.map((option) => (
+                                                        <option key={option} value={option} />
+                                                    ))}
+                                                </datalist>
+                                            </>
                                         )}
+
 
                                         {/* ✅ Boolean Toggle */}
                                         {type === "boolean" && (

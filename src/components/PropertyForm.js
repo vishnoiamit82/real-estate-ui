@@ -4,6 +4,7 @@ import CreateAgentModal from './CreateAgentModal';
 import { useNavigate } from 'react-router-dom';
 import { PlusCircle } from 'lucide-react';
 import PropertyFields from "./PropertyFields";
+import DescriptionProcessor from './DescriptionProcessor';
 
 const PropertyForm = () => {
     const [formData, setFormData] = useState({
@@ -39,6 +40,8 @@ const PropertyForm = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const visibleSections = ["Basic Information", "Financial Information", "Property Details"];
+    const [processedDescription, setProcessedDescription] = useState('');
+
 
 
 
@@ -202,10 +205,6 @@ const PropertyForm = () => {
     };
 
 
-
-
-
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -219,7 +218,7 @@ const PropertyForm = () => {
             ...formData,
             conversation: [
                 {
-                    content: description, // Add the description as the first conversation entry
+                    content: processedDescription, // Add the description as the first conversation entry
                     timestamp: new Date(),
                 },
             ],
@@ -336,71 +335,26 @@ const PropertyForm = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
 
-                {/* Property Description Section */}
-                <div className="mt-4 p-6 bg-white border rounded-lg shadow-lg w-full max-w-6xl mx-auto">
-                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                        🏡 Property Description
-                    </h3>
-
-                    {/* Toggle Button to Expand/Collapse */}
-                    <button
-                        type="button"
-                        onClick={() => setIsCollapsed(!isCollapsed)}
-                        className="flex items-center gap-2 text-blue-500 hover:text-blue-700 text-sm font-semibold transition-all"
-                    >
-                        <span>{isCollapsed ? "View Description" : "Hide Description"}</span>
-                        <span className={`transform transition-transform ${isCollapsed ? "rotate-0" : "rotate-180"}`}>
-                            ⌄
-                        </span>
-                    </button>
 
 
-                    {/* Show Description Only When Expanded */}
-                    {!isCollapsed && (
-                        <>
+                <DescriptionProcessor
+                    formData={formData}
+                    setFormData={setFormData}
+                    onMessage={setMessage}
+                    onProcessedSuccess={() => setShowForm(true)}
+                    onDescriptionProcessed={setProcessedDescription}
+                />
 
-                            {/* Textarea for Property Description */}
-                            <textarea
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300 hover:shadow-md transition"
-                                placeholder="Copy and paste the property description from an agent email, real estate website, or any other source.The magic will extract the relevant details and populate the property details for you."
-                                rows="5"
-                            ></textarea>
 
-                            {/* Process Description Button */}
-                            <div className="flex justify-center sm:justify-start">
-                                <button
-                                    type="button"
-                                    onClick={handleProcessDescription}
-                                    className={`mt-3 w-full sm:w-auto px-6 py-3 rounded-md text-white font-semibold transition-all duration-200 
-                                ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
-                                    disabled={isProcessing}
-                                >
-                                    {isProcessing ? "Processing..." : "🔍 Process Description"}
-                                </button>
-                            </div>
-                        </>
-                    )}
 
-                    {/* Show Spinner While Processing */}
-                    {isProcessing && <Spinner />}
-
-                    {/* AI Processing Status Messages */}
-                    {message && (
-                        <p className={`mt-3 text-center sm:text-left text-lg ${message.includes("failed") ? "text-red-600" : "text-green-600"}`}>
-                            {message}
-                        </p>
-                    )}
-                </div>
                 {showForm && (
                     <div className="mt-6 p-6 bg-white border rounded-lg shadow-lg w-full max-w-6xl mx-auto">
 
-                <PropertyFields 
-                formData={formData} 
-                setFormData={setFormData} 
-                visibleSections={visibleSections} 
-                />
+                        <PropertyFields
+                            formData={formData}
+                            setFormData={setFormData}
+                            visibleSections={visibleSections}
+                        />
 
                     </div>
                 )}

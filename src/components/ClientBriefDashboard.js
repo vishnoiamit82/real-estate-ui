@@ -1,15 +1,9 @@
-// ✅ ClientBriefDashboard using useCurrentUser hook instead of props
+// ✅ Updated ClientBriefDashboard with mobile-friendly summary layout
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../axiosInstance';
 import { useNavigate } from 'react-router-dom';
 import { Eye, Edit2, Trash, Share2 } from 'lucide-react';
 import { useAuth } from './AuthContext';
-
-const PropertyList = () => {
-  const { currentUser } = useAuth();
-  console.log("User ID:", currentUser?._id);
-};
-
 
 const ClientBriefDashboard = () => {
   const { currentUser } = useAuth();
@@ -21,10 +15,6 @@ const ClientBriefDashboard = () => {
   const navigate = useNavigate();
   const [matchCounts, setMatchCounts] = useState({});
 
-
-  console.log('Dashboard', currentUser)
-
-
   useEffect(() => {
     const fetchClientBriefs = async () => {
       try {
@@ -32,7 +22,6 @@ const ClientBriefDashboard = () => {
         const briefs = response.data;
         setClientBriefs(briefs);
 
-        // Fetch match counts in parallel
         const counts = {};
         await Promise.all(
           briefs.map(async (brief) => {
@@ -53,7 +42,6 @@ const ClientBriefDashboard = () => {
     fetchClientBriefs();
   }, []);
 
-
   useEffect(() => {
     if (currentUser && currentUser.id) {
       const link = `${window.location.origin}/client-briefs/add?buyerAgentId=${currentUser.id}&invitedBy=${currentUser.id}`;
@@ -72,10 +60,7 @@ const ClientBriefDashboard = () => {
   };
 
   const handleCopyInviteLink = () => {
-    if (!inviteLink) {
-      alert('Invite link is not ready yet.');
-      return;
-    }
+    if (!inviteLink) return alert('Invite link is not ready yet.');
     navigator.clipboard.writeText(inviteLink)
       .then(() => alert('✅ Invite link copied to clipboard!'))
       .catch(() => alert('❌ Failed to copy invite link. Please copy manually.'));
@@ -88,13 +73,23 @@ const ClientBriefDashboard = () => {
     return true;
   });
 
-  const canEditOrDelete = (brief) => {
-    return (
-      brief.createdBy === userId ||
-      brief.buyerAgentId === userId ||
-      userRole === 'admin'
-    );
-  };
+  const WeightBar = ({ value }) => (
+    <div className="flex gap-0.5 items-center ml-auto">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div
+          key={i}
+          className={`h-2 w-4 rounded-sm ${i <= value ? 'bg-blue-600' : 'bg-gray-300'}`}
+        />
+      ))}
+    </div>
+  );
+
+
+  const canEditOrDelete = (brief) => (
+    brief.createdBy === userId ||
+    brief.buyerAgentId === userId ||
+    userRole === 'admin'
+  );
 
   const getOwnershipTag = (brief) => {
     if (brief.buyerAgentId === userId) return { label: 'My Brief', color: 'bg-green-100 text-green-700' };
@@ -147,7 +142,6 @@ const ClientBriefDashboard = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredBriefs.map((brief) => {
-
             const tag = getOwnershipTag(brief);
             return (
               <div key={brief._id} className="border rounded-lg p-4 shadow-sm bg-white">
@@ -158,17 +152,49 @@ const ClientBriefDashboard = () => {
                   )}
                 </div>
 
-                <p className="text-sm text-gray-600">Email: {brief.email}</p>
-                <p className="text-sm text-gray-600">Phone: {brief.phoneNumber}</p>
-                <p className="text-sm text-gray-600">Address: {brief.address}</p>
-                <p className="text-sm text-gray-600">Strategy: {brief.investmentStrategy}</p>
-                <p className="text-sm text-gray-600">Interest Rate: {brief.interestRate}%</p>
-                <p className="text-sm text-gray-600">Locations: {brief.preferredLocations?.join(', ')}</p>
+
+
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
+                  <div><strong>Email:</strong> {brief.email || '–'}</div>
+                  <div><strong>Phone:</strong> {brief.phoneNumber || '–'}</div>
+                  <div className="sm:col-span-2"><strong>Address:</strong> {brief.address || '–'}</div>
+                  <div><strong>Entity Type:</strong> {brief.entityType || '–'}</div>
+                  <div><strong>Interest Rate:</strong> {brief.interestRate ? `${brief.interestRate}%` : '–'}</div>
+                  <div><strong>Budget:</strong> ${brief.budget?.max?.toLocaleString() || '–'}</div>
+                  <div><strong>Yield:</strong> {brief.minYield ? `${brief.minYield}%+` : '–'}</div>
+                  <div><strong>Max Holding Cost:</strong> ${brief.maxMonthlyHoldingCost || '–'}</div>
+                  <div><strong>Min Build Year:</strong> {brief.minBuildYear || '–'}</div>
+                  <div><strong>Bedrooms:</strong> {brief.bedrooms || '–'}</div>
+                  <div><strong>Bathrooms:</strong> {brief.bathrooms || '–'}</div>
+                  <div className="sm:col-span-2">
+                    <strong>Preferred Locations:</strong> {brief.preferredLocations?.join(', ') || '–'}
+                  </div>
+                </div>
+
                 {matchCounts[brief._id] > 0 && (
-                  <p className="text-sm text-green-600 font-medium mt-2">
-                    💡 {matchCounts[brief._id]} properties match above 80%
+                  <p className="text-xs mt-2 bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded inline-block">
+                    ✅ {matchCounts[brief._id]} properties match over 80%
                   </p>
                 )}
+
+                <details className="mt-3 text-xs">
+                  <summary className="cursor-pointer text-blue-600 hover:underline">View Weightage</summary>
+                  {/* WeightBar fields here */}
+
+                  {brief.weightage && (
+                    <div className="mt-3 border-t pt-2 text-xs text-gray-700 space-y-1">
+                      <div className="flex justify-between items-center"><span>📍 Location</span> <WeightBar value={brief.weightage.location} /></div>
+                      <div className="flex justify-between items-center"><span>💰 Budget</span> <WeightBar value={brief.weightage.budget} /></div>
+                      <div className="flex justify-between items-center"><span>🛏 Bedrooms</span> <WeightBar value={brief.weightage.bedrooms} /></div>
+                      <div className="flex justify-between items-center"><span>🛁 Bathrooms</span> <WeightBar value={brief.weightage.bathrooms} /></div>
+                      <div className="flex justify-between items-center"><span>🧱 Subdivision</span> <WeightBar value={brief.weightage.subdivisionPotential} /></div>
+                      <div className="flex justify-between items-center"><span>📈 Min Yield</span> <WeightBar value={brief.weightage.minYield} /></div>
+                      <div className="flex justify-between items-center"><span>💸 Holding Cost</span> <WeightBar value={brief.weightage.maxMonthlyHoldingCost} /></div>
+                      <div className="flex justify-between items-center"><span>🏗 Age of Property</span> <WeightBar value={brief.weightage.ageOfProperty} /></div>
+                    </div>
+                  )}
+                </details>
 
                 <div className="flex gap-2 mt-3">
                   <button onClick={() => navigate(`/client-briefs/${brief._id}/matches`)} className="text-blue-500 hover:text-blue-700">

@@ -3,6 +3,7 @@ import axiosInstance from '../axiosInstance';
 import { Link } from 'react-router-dom';
 import { logPropertyConversation } from '../utils/logPropertyConversation';
 import { useAuth } from './AuthContext';
+import PropertyConversationLog from './PropertyConversationLog';
 
 const EmailModal = ({ property, agent, templates, onClose }) => {
     const [selectedTemplate, setSelectedTemplate] = useState('');
@@ -242,6 +243,7 @@ const EmailModal = ({ property, agent, templates, onClose }) => {
                     </button>
 
                 </div>
+                <PropertyConversationLog propertyId={property._id} />
             </div>
         </div>
     );
