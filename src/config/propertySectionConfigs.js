@@ -9,7 +9,9 @@ export const PROPERTY_SECTION_CONFIGS = {
         "Due Diligence",
         "Status Tracking",
         "Additional Due Diligence",
+        "Documents & Media",
         "Audit & Timestamps"
+ 
       ],
       showCommLog: true,
       showOriginalDescription: true,
@@ -23,7 +25,9 @@ export const PROPERTY_SECTION_CONFIGS = {
         "Property Details",
         "Due Diligence",
         "Location & Zoning",
-        "Status Tracking"
+        "Documents & Media",
+        "Status Tracking",
+        
       ],
       showCommLog: false,
       showOriginalDescription: false,
@@ -34,7 +38,8 @@ export const PROPERTY_SECTION_CONFIGS = {
       visibleSections: [
         "Basic Information",
         "Financial Information",
-        "Property Details"
+        "Property Details",
+        "Documents & Media"
       ],
       showCommLog: false,
       showOriginalDescription: false,

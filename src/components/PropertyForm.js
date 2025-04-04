@@ -22,7 +22,10 @@ const PropertyForm = () => {
         floodZone: '',
         bushfireZone: '',
         publicListing: false,  // By default, not public
-        showAddress: true  // By default, not show address
+        showAddress: true,  // By default, not show address
+        landSize: '',
+        documents: [],
+        videos: []
     });
 
     const [description, setDescription] = useState(''); // For entering property description

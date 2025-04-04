@@ -24,6 +24,12 @@ const PropertyEdit = () => {
         floodZone: '',
         bushfireZone: '',
         conversation: [],
+        documents: [],
+        videos: [],
+        nearbySchools: [],
+        publicTransport: []
+
+        
     });
 
     const [agents, setAgents] = useState([]);

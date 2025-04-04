@@ -45,6 +45,14 @@ import {
     
   
     if (source === 'created') {
+
+      actions.push({
+        label: 'Notes',
+        icon: NotebookText,
+        type: 'secondary',
+        onClick: () => setSelectedPropertyForNotes(property),
+      });
+      
       actions.push({
         label: 'View/Edit',
         icon: Edit2,
@@ -102,13 +110,6 @@ import {
     }
 
     // === COMMON PRIMARY ACTIONS ===
-
-    actions.push({
-      label: 'Notes',
-      icon: NotebookText,
-      type: 'secondary',
-      onClick: () => setSelectedPropertyForNotes(property),
-    });
 
     
   

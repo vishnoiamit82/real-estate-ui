@@ -49,7 +49,7 @@ const propertySchemaFields = {
     ],
 
     "Status Tracking": [
-        { key: "currentStatus", label: "📌 Current Status", type: "dropdown", options: ["available", "sold", "offer_accepted"] },
+        { key: "currentStatus", label: "📌 Property Status", type: "dropdown", options: ["available", "sold", "offer_accepted"] },
         { key: "decisionStatus", label: "📊 Decision Status", type: "dropdown", options: ["undecided", "pursue", "on_hold"] }
     ],
 
@@ -64,7 +64,23 @@ const propertySchemaFields = {
         { key: "createdAt", label: "📅 Created At", type: "datetime" },
         { key: "updatedAt", label: "📅 Updated At", type: "datetime" },
         { key: "deleted_at", label: "🗑️ Deleted At", type: "datetime" }
+    ],
+
+    "Documents & Media": [
+        {
+            key: "documents",
+            label: "📄 Document Links",
+            type: "array",
+            editable: true
+          },
+          {
+            key: "videos",
+            label: "🎥 Video Links",
+            type: "array",
+            editable: true
+          }
     ]
+
 
 };
 

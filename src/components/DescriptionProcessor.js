@@ -1,6 +1,7 @@
 // components/DescriptionProcessor.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axiosInstance from '../axiosInstance';
+
 
 const Spinner = () => (
     <div className="flex justify-center items-center mt-3">
@@ -15,11 +16,18 @@ const DescriptionProcessor = ({ formData, setFormData, onMessage, onProcessedSuc
     const [message, setMessage] = useState('');
     const [overwriteExisting, setOverwriteExisting] = useState(false);
 
+    useEffect(() => {
+        console.log("formData.nearbySchools updated to:", formData.nearbySchools);
+    }, [formData.nearbySchools]);
+
+
     const handleProcessDescription = async () => {
         if (!description.trim()) {
             setMessage('⚠️ Please enter a description to process.');
             return;
         }
+
+
 
         setIsProcessing(true);
         setMessage('');
@@ -36,28 +44,36 @@ const DescriptionProcessor = ({ formData, setFormData, onMessage, onProcessedSuc
 
             setFormData((prev) => {
                 const updated = { ...prev };
-            
+
                 for (const key in structuredData) {
-                    const incoming = structuredData[key];
-            
-                    // Deep merge dueDiligence fields
+                    let incoming = structuredData[key];
+
+                    // Deep merge dueDiligence
                     if (key === "dueDiligence" && typeof incoming === "object") {
                         updated.dueDiligence = {
                             ...(prev.dueDiligence || {}),
                             ...incoming,
                         };
                     } else {
-                        const shouldUpdate = overwriteExisting || !prev[key];
-                        if (shouldUpdate && incoming !== undefined && incoming !== null) {
+                        const shouldOverwrite =
+                            overwriteExisting || !prev[key] || (Array.isArray(prev[key]) && prev[key].length === 0);
+
+                        if (shouldOverwrite && incoming !== undefined && incoming !== null) {
                             updated[key] = incoming;
                         }
                     }
                 }
-            
-                updated.offMarketStatus = structuredData.isOffMarket ? "yes" : "no";
-                return updated;
+
+                // Handle special case for boolean conversion
+                if (structuredData.isOffMarket !== undefined) {
+                    updated.offMarketStatus = structuredData.isOffMarket ? "yes" : "no";
+                }
+
+                return { ...updated };
             });
-            
+
+
+
 
             setMessage('✅ Information extracted successfully! Please review and edit if needed.');
             onMessage && onMessage('✅ Information extracted successfully!');
@@ -114,7 +130,7 @@ const DescriptionProcessor = ({ formData, setFormData, onMessage, onProcessedSuc
                                 ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
                             disabled={isProcessing}
                         >
-                            {isProcessing ? "Processing..." : "🔍 Process Description"}
+                            {isProcessing ? "Processing..." : "🔍 Extract Information"}
                         </button>
                     </div>
                 </>
