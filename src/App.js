@@ -44,7 +44,7 @@ import CommunityBoard from './components/CommunityBoard';
 // Inside your App JSX
 <ToastContainer position="top-right" autoClose={3000} />
 
-NProgress.configure({ showSpinner: false, trickleSpeed: 200 });
+NProgress.configure({ showSpinner: false, trickleSpeed: 120,minimum: 0.05   });
 
 
 

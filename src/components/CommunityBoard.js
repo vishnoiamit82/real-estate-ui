@@ -1,3 +1,4 @@
+// ✅ CommunityBoard.js (with searchMode lifted and passed down)
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -21,6 +22,8 @@ const CommunityBoard = () => {
   const [sortOrder, setSortOrder] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [aiResults, setAiResults] = useState(null);
+  const [searchMode, setSearchMode] = useState('ai');
+  const [aiSearchActive, setAiSearchActive] = useState(false);
 
   useEffect(() => {
     const fetchSharedProperties = async () => {
@@ -36,58 +39,6 @@ const CommunityBoard = () => {
 
     fetchSharedProperties();
   }, []);
-
-  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-
-  const handleSaveToMyList = async (propertyId) => {
-    try {
-      await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/saved-properties`, {
-        communityPropertyId: propertyId
-      });
-      toast.success('✅ Property saved to your list!');
-    } catch (err) {
-      if (err.response?.data?.message === 'Already saved.') {
-        toast.info('This property is already in your saved list.');
-      } else {
-        console.error('Error saving property:', err);
-        toast.error('Failed to save property. Please try again.');
-      }
-    }
-  };
-
-  const handlePursueCommunityProperty = async (property) => {
-    try {
-      let savedId = property.savedId;
-
-      if (!savedId || property.source !== 'saved') {
-        const response = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/saved-properties`, {
-          communityPropertyId: property._id,
-        });
-        savedId = response.data._id;
-      }
-
-      await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/saved-properties/${savedId}/decision`, {
-        decisionStatus: 'pursue',
-      });
-
-      toast.success('Marked as pursued!');
-    } catch (error) {
-      console.error('Error pursuing community property:', error);
-      toast.error('Failed to pursue property.');
-    }
-  };
-
-  const handleMessagePoster = (property) => {
-    setSelectedProperty(property);
-    setMessageRecipient(property.sharedBy);
-    setEmailModalOpen(true);
-  };
-
-  const closeEmailModal = () => {
-    setSelectedProperty(null);
-    setMessageRecipient(null);
-    setEmailModalOpen(false);
-  };
 
   const filteredProperties = sharedProperties.filter((property) => {
     const address = property.address?.toLowerCase() || '';
@@ -107,42 +58,26 @@ const CommunityBoard = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const displayedProperties = aiResults || filteredProperties;
-
-  console.log (displayedProperties)
+  const displayedProperties =
+    searchMode === 'ai'
+      ? aiSearchActive
+        ? aiResults || []
+        : sharedProperties
+      : filteredProperties;
 
   const sortedProperties = [...displayedProperties].sort((a, b) => {
     const valA = a[sortKey];
     const valB = b[sortKey];
-
     if (!valA || !valB) return 0;
-
-    if (typeof valA === 'string') {
-      return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-    }
-
-    if (!isNaN(Date.parse(valA))) {
-      return sortOrder === 'asc'
-        ? new Date(valA) - new Date(valB)
-        : new Date(valB) - new Date(valA);
-    }
-
-    if (typeof valA === 'number') {
-      return sortOrder === 'asc' ? valA - valB : valB - valA;
-    }
-
+    if (typeof valA === 'string') return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+    if (!isNaN(Date.parse(valA))) return sortOrder === 'asc' ? new Date(valA) - new Date(valB) : new Date(valB) - new Date(valA);
+    if (typeof valA === 'number') return sortOrder === 'asc' ? valA - valB : valB - valA;
     return 0;
   });
 
-  const propertyTypes = Array.from(new Set(sharedProperties.map((p) => p.propertyType).filter(Boolean)));
-
-  if (loading) return <p className="p-6 text-gray-600">Loading community properties...</p>;
-
   return (
     <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold">🏘️ Community Board - Shared Properties</h2>
-      </div>
+      <h2 className="text-3xl font-bold mb-6">🏘️ Community Board - Shared Properties</h2>
 
       <PropertyFilterBar
         currentFilter={propertyTypeFilter}
@@ -157,15 +92,31 @@ const CommunityBoard = () => {
         viewMode={viewMode}
         setViewMode={setViewMode}
         showViewToggle={true}
-        onAiSearch={(results) => setAiResults(results)}
+        searchMode={searchMode}
+        setSearchMode={setSearchMode}
+        aiSearchActive={aiSearchActive}
+        setAiSearchActive={setAiSearchActive}
+        onAiSearch={(results) => {
+          if (results) {
+            setAiSearchActive(true);
+            setAiResults(results);
+          } else {
+            setAiSearchActive(false);
+            setAiResults(null);
+          }
+        }}
       />
 
       <PropertyViewSwitcher
         properties={sortedProperties}
         viewMode={viewMode}
         navigate={navigate}
-        currentUser={currentUser}
-        setSelectedPropertyForEmail={handleMessagePoster}
+        currentUser={JSON.parse(localStorage.getItem('currentUser'))}
+        setSelectedPropertyForEmail={(property) => {
+          setSelectedProperty(property);
+          setMessageRecipient(property.sharedBy);
+          setEmailModalOpen(true);
+        }}
         setSelectedAgent={() => { }}
         setSelectedPropertyForNotes={() => { }}
         updateDecisionStatus={() => { }}
@@ -174,8 +125,8 @@ const CommunityBoard = () => {
         handleShareProperty={() => { }}
         handleShareToCommunity={() => { }}
         handleUnshareFromCommunity={() => { }}
-        handlePursueCommunityProperty={handlePursueCommunityProperty}
-        handleSaveToMyList={handleSaveToMyList}
+        handlePursueCommunityProperty={() => { }}
+        handleSaveToMyList={() => { }}
         deleteSavedProperty={() => { }}
       />
 
@@ -184,7 +135,11 @@ const CommunityBoard = () => {
           property={selectedProperty}
           agent={messageRecipient}
           templates={[]}
-          onClose={closeEmailModal}
+          onClose={() => {
+            setSelectedProperty(null);
+            setMessageRecipient(null);
+            setEmailModalOpen(false);
+          }}
         />
       )}
     </div>

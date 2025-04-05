@@ -34,7 +34,7 @@ const Header = ({ currentUser, onLogout }) => {
             <nav className="container mx-auto flex justify-between items-center p-4">
                 {/* Logo */}
                 <h1>
-                    <NavLink to="/" className="text-xl font-bold hover:text-blue-400 transition">
+                    <NavLink to="/public" className="text-xl font-bold hover:text-blue-400 transition">
                         Buyers Agents App
                     </NavLink>
                 </h1>

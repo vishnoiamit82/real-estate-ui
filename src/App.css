@@ -71,22 +71,39 @@ button:hover {
   color: #fff;
 }
 
+/* NProgress custom style */
 #nprogress {
   pointer-events: none;
 }
 
 #nprogress .bar {
-  background: #3b82f6; /* Tailwind blue-500 */
+  background: #6C5CE7; /* ✨ Premium purple or change to your brand color */
   position: fixed;
-  z-index: 9999;
+  z-index: 1031;
   top: 0;
   left: 0;
+
   width: 100%;
-  height: 4px;
+  height: 4px; /* Increased height for better visibility */
 }
 
+#nprogress .peg {
+  display: block;
+  position: absolute;
+  right: 0px;
+  width: 100px;
+  height: 100%;
+  box-shadow: 0 0 10px #6C5CE7, 0 0 5px #6C5CE7;
+  opacity: 1;
+  transform: rotate(3deg) translate(0px, -4px);
+}
 
-/* App.css or index.css */
+#nprogress .spinner {
+  display: none !important; /* Already disabled in config, just enforcing it here */
+}
+
 #nprogress .bar {
-  background: #3b82f6 !important; /* Tailwind blue-500 */
+  transition: all 0.4s ease;
 }
+
+
