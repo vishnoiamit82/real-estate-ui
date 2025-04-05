@@ -45,6 +45,7 @@ import CommunityBoard from './components/CommunityBoard';
 <ToastContainer position="top-right" autoClose={3000} />
 
 NProgress.configure({ showSpinner: false, trickleSpeed: 120,minimum: 0.05   });
+import { Analytics } from "@vercel/analytics/react"
 
 
 
@@ -185,6 +186,8 @@ function App() {
 
         <Footer />
       </div>
+      <Analytics />
+
       </BrowserRouter>
   );
 }
