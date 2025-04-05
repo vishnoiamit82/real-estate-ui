@@ -39,13 +39,15 @@ import { BrowserRouter } from 'react-router-dom';
 // App.js or index.js
 import { ToastContainer, toast } from 'react-toastify';
 import CommunityBoard from './components/CommunityBoard';
+import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/react"
 
 
 // Inside your App JSX
 <ToastContainer position="top-right" autoClose={3000} />
 
 NProgress.configure({ showSpinner: false, trickleSpeed: 120,minimum: 0.05   });
-import { Analytics } from "@vercel/analytics/react"
+
 
 
 
@@ -187,6 +189,8 @@ function App() {
         <Footer />
       </div>
       <Analytics />
+      <SpeedInsights />
+      
 
       </BrowserRouter>
   );
