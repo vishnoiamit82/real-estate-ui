@@ -56,12 +56,12 @@ const PropertyHighlights = ({ property }) => {
                     })}
             </div>
 
-            {/* Optional Tag for Subdivision */}
+            {/* Optional Tag for Subdivision
             {property.subdivisionPotential && (
                 <div className="mt-2 inline-flex items-center gap-1 bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs">
                     🏠 Subdividable
                 </div>
-            )}
+            )} */}
         </>
     );
 };

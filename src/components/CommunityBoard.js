@@ -79,7 +79,7 @@ const CommunityBoard = () => {
     <div className="container mx-auto p-6">
       <h2 className="text-3xl font-bold mb-6">🏘️ Community Board - Shared Properties</h2>
 
-      <PropertyFilterBar
+      {/* <PropertyFilterBar
         currentFilter={propertyTypeFilter}
         setCurrentFilter={setPropertyTypeFilter}
         searchQuery={searchQuery}
@@ -105,7 +105,7 @@ const CommunityBoard = () => {
             setAiResults(null);
           }
         }}
-      />
+      /> */}
 
       <PropertyViewSwitcher
         properties={sortedProperties}
@@ -129,6 +129,7 @@ const CommunityBoard = () => {
         handleSaveToMyList={() => { }}
         deleteSavedProperty={() => { }}
       />
+
 
       {emailModalOpen && selectedProperty && messageRecipient && (
         <EmailModal

@@ -86,7 +86,11 @@ const AISearchDrawer = ({ isOpen, onClose, filters = {}, parsedKeys = [], onConf
   if (!isOpen) return null;
 
   const isValid = (val) => val !== undefined && val !== null && val !== '' && !(Array.isArray(val) && val.length === 0);
-  const hasParsedFilters = parsedKeys.some(key => isValid(filters[key]));
+  
+  parsedKeys = Object.keys(filters || {}).filter(key => isValid(filters[key]));
+  const hasParsedFilters = parsedKeys.length > 0;
+
+  // const hasParsedFilters = parsedKeys.some(key => isValid(filters[key]));
 
   const handleChange = (field, value) => {
     setPendingFilters(prev => ({ ...prev, [field]: value }));

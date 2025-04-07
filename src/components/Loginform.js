@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../axiosInstance';
 import { jwtDecode } from 'jwt-decode';
+import { toast } from 'react-toastify';
+
 
 const LoginForm = ({ setCurrentUser }) => {
     const [email, setEmail] = useState('');
@@ -16,6 +18,9 @@ const LoginForm = ({ setCurrentUser }) => {
                 email,
                 password
             });
+
+          
+              
             
 
             localStorage.setItem('authToken', response.data.token);
@@ -32,6 +37,9 @@ const LoginForm = ({ setCurrentUser }) => {
 
             navigate(response.data.user.role === 'admin' ? '/user-management' : '/');
         } catch (error) {
+            if (error.response?.status === 403) {
+                toast.error("Your account is under review and pending approval.");
+            }
             console.error('Login error:', error);
             setError('Invalid email or password');
         }

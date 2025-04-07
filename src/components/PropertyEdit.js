@@ -4,33 +4,12 @@ import axiosInstance from '../axiosInstance';
 import PropertyFields from "./PropertyFields";
 import { PROPERTY_SECTION_CONFIGS } from '../config/propertySectionConfigs';
 import DescriptionProcessor from './DescriptionProcessor';
+import initialPropertyFormData from '../utils/initialPropertyFormData';
 
 
 const PropertyEdit = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        address: '',
-        propertyLink: '',
-        agentId: '',
-        agentDetails: '',
-        offerClosingDate: '',
-        currentStatus: 'available',
-        askingPrice: '',
-        rental: '',
-        rentalYield: '',
-        councilRate: '',
-        insurance: '',
-        floodZone: '',
-        bushfireZone: '',
-        conversation: [],
-        documents: [],
-        videos: [],
-        nearbySchools: [],
-        publicTransport: []
-
-        
-    });
+    const [formData, setFormData] = useState(initialPropertyFormData);
 
     const [agents, setAgents] = useState([]);
     const [filteredAgents, setFilteredAgents] = useState([]);

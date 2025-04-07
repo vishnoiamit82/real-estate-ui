@@ -1,4 +1,12 @@
 const propertySchemaFields = {
+    "Initial Info": [
+        {
+            key: "publicConversations",
+            label: "🗨️ Public Conversation",
+            type: "array",
+            editable: true
+        }
+    ],
     "Basic Information": [
         { key: "address", label: "🏡 Address", type: "text" },
         { key: "propertyLink", label: "🔗 Property Link", type: "text" },
@@ -8,7 +16,7 @@ const propertySchemaFields = {
         { key: "offerClosingDate", label: "📅 Offer Closing Date", type: "text" },
         { key: "upcomingInspectionDate", label: "🔍 Upcoming Inspection", type: "text" },
         { key: "videoAvailableDate", label: "🎥 Video Available Date", type: "text" },
-        { key: "subdivisionPotential", label: "Subdividable", type: "boolean" },
+        // { key: "subdivisionPotential", label: "Subdividable", type: "string" },
         { key: "mapsLink", label: "🗺️ Google Maps Link", type: "text" },
         { key: "tags", label: "🏷️ Tags", type: "array" }
 
@@ -72,13 +80,13 @@ const propertySchemaFields = {
             label: "📄 Document Links",
             type: "array",
             editable: true
-          },
-          {
+        },
+        {
             key: "videos",
             label: "🎥 Video Links",
             type: "array",
             editable: true
-          }
+        }
     ]
 
 

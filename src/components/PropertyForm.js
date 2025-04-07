@@ -5,28 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { PlusCircle } from 'lucide-react';
 import PropertyFields from "./PropertyFields";
 import DescriptionProcessor from './DescriptionProcessor';
+import initialPropertyFormData from '../utils/initialPropertyFormData';
+
 
 const PropertyForm = () => {
-    const [formData, setFormData] = useState({
-        address: '',
-        propertyLink: '',
-        agentId: '',
-        agentDetails: '', // Combines name, phone, and email
-        offerClosingDate: '',
-        currentStatus: 'available',
-        askingPrice: '',
-        rental: '',
-        rentalYield: '',
-        councilRate: '',
-        insurance: '',
-        floodZone: '',
-        bushfireZone: '',
-        publicListing: false,  // By default, not public
-        showAddress: true,  // By default, not show address
-        landSize: '',
-        documents: [],
-        videos: []
-    });
+    const [formData, setFormData] = useState(initialPropertyFormData);
 
     const [description, setDescription] = useState(''); // For entering property description
     const [processedDetails, setProcessedDetails] = useState(null); // To display processed data
@@ -68,34 +51,6 @@ const PropertyForm = () => {
         fetchAgents();
     }, []);
 
-    const propertySchemaFields = {
-        "Basic Information": [
-            { key: "address", label: "🏡 Address", type: "text" },
-            { key: "propertyLink", label: "🔗 Property Link", type: "text" },
-            { key: "propertyType", label: "🏠 Property Type", type: "text" },
-            { key: "yearBuilt", label: "📅 Year Built", type: "text" },
-            { key: "offMarketStatus", label: "📉 Off Market Status", type: "boolean" }
-
-        ],
-        "Financial Information": [
-            { key: "askingPrice", label: "💰 Asking Price", type: "text" },
-            { key: "rental", label: "🏠 Rental Price", type: "text" },
-            { key: "rentalYield", label: "📈 Rental Yield", type: "text" },
-            { key: "councilRate", label: "🏛️ Council Rate", type: "text" }
-
-        ],
-        "Property Details": [
-            { key: "bedrooms", label: "🛏️ Bedrooms", type: "number" },
-            { key: "bathrooms", label: "🛁 Bathrooms", type: "number" },
-            { key: "carSpaces", label: "🚗 Car Spaces", type: "number" },
-            { key: "landSize", label: "📏 Land Size", type: "text" }
-        ],
-        "Location & Zoning": [
-            { key: "nearbySchools", label: "🏫 Nearby Schools", type: "array" },
-            { key: "publicTransport", label: "🚌 Public Transport", type: "array" }
-        ]
-
-    };
 
     // { key: "insurance", label: "🛡️ Insurance", type: "text" }
 

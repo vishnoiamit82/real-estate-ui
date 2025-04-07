@@ -47,7 +47,7 @@ const PropertyFilterLayout = ({
         onOpenFilterDrawer={() => setIsDrawerOpen(true)}
       />
 
-      <PropertyFilterDrawer
+      {/* <PropertyFilterDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         currentFilter={currentFilter}
@@ -58,7 +58,7 @@ const PropertyFilterLayout = ({
         setSortOrder={setSortOrder}
         filterOptions={filterOptions}
         setCurrentPage={setCurrentPage}
-      />
+      /> */}
     </>
   );
 };

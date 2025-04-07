@@ -2,14 +2,11 @@ import React, { useState, useEffect } from 'react';
 import {
   Search,
   Sparkles,
-  X,
-  SlidersHorizontal
+  X
 } from 'lucide-react';
 import axiosInstance from '../axiosInstance';
 import { getRecentSearches, saveRecentSearch } from '../utils/recentSearchUtils';
 import AISearchDrawer from './AISearchDrawer';
-
-
 
 const PropertyFilterBarDesktop = ({
   currentFilter,
@@ -28,28 +25,26 @@ const PropertyFilterBarDesktop = ({
   showViewToggle = false,
   filterOptions,
   onAiSearch = () => { },
-  onOpenFilterDrawer,
   searchMode,
   setSearchMode
 }) => {
   const [searchFocused, setSearchFocused] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
   const [aiDrawerOpen, setAiDrawerOpen] = useState(false);
-  const [pendingFilters, setPendingFilters] = useState(null);
-
-
+  const [pendingFilters, setPendingFilters] = useState(() => {
+    const saved = localStorage.getItem('lastAISearchFilters');
+    return saved ? JSON.parse(saved) : null;
+  });
 
   useEffect(() => {
     setRecentSearches(getRecentSearches());
-  }, [searchFocused]); // Refresh every time focus happens
-
+  }, [searchFocused]);
 
   const handleSelectRecent = (query) => {
     setSearchQuery(query);
     saveRecentSearch(query);
     setCurrentPage?.(1);
   };
-
 
   const exampleQueries = [
     "Looking for a house in Mildura for around $550k built after year 2000.",
@@ -69,33 +64,19 @@ const PropertyFilterBarDesktop = ({
       );
 
       const { parsedFilters = {} } = response.data;
-      setPendingFilters(parsedFilters);
-      setAiDrawerOpen(true); // 🧠 open drawer to preview filters
+      const updatedFilters = {
+        ...Object.fromEntries(
+          Object.keys(currentFilter || {}).map((key) => [key, 'Any'])
+        ),
+        ...parsedFilters
+      };
+      setPendingFilters(updatedFilters);
+      setAiDrawerOpen(true);
     } catch (error) {
       console.error('AI Search failed:', error);
       alert('AI Search failed. Please try again.');
     }
   };
-
-
-  // const handleConfirmSearch = async () => {
-  //   try {
-  //     const response = await axiosInstance.post(
-  //       `${process.env.REACT_APP_API_BASE_URL}/public/ai-search`,
-  //       { query: searchQuery }
-  //     );
-  //     const results = response.data?.results || [];
-  //     setAiSearchActive(true);
-  //     onAiSearch(results);
-  //     setCurrentPage(1);
-  //     setShowFilterModal(false);
-  //   } catch (err) {
-  //     console.error('AI Search failed:', err);
-  //     alert('AI Search failed. Please try again.');
-  //   }
-  // };
-
-
 
   const handleClearSearch = () => {
     setSearchQuery('');
@@ -106,7 +87,6 @@ const PropertyFilterBarDesktop = ({
 
   return (
     <div className="bg-[#F8F9FA] p-4 rounded-lg shadow-sm space-y-4 text-[#2D2D2D] border border-[#E5E7EB]">
-      {/* Search Mode Toggle */}
       <div className="max-w-5xl mx-auto flex gap-2 text-sm">
         <button
           onClick={() => setSearchMode('ai')}
@@ -123,7 +103,6 @@ const PropertyFilterBarDesktop = ({
         </button>
       </div>
 
-      {/* Search Bar */}
       <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row items-stretch gap-3">
         <div className="relative flex-grow">
           <Search className="absolute left-4 top-3 w-5 h-5 text-[#6B7280]" />
@@ -152,7 +131,6 @@ const PropertyFilterBarDesktop = ({
             disabled={false}
           />
 
-          {/* Clear button */}
           {searchQuery && (
             <button
               onClick={handleClearSearch}
@@ -162,7 +140,6 @@ const PropertyFilterBarDesktop = ({
             </button>
           )}
 
-          {/* AI Search button */}
           {searchMode === 'ai' && (
             <button
               onClick={handleAiSearch}
@@ -175,20 +152,32 @@ const PropertyFilterBarDesktop = ({
           )}
         </div>
 
-        <button
-          onClick={onOpenFilterDrawer}
-          title="Open Filter & Sort Options"
-          className="text-[#1F2937] bg-white hover:bg-gray-100 border border-[#E5E7EB] px-4 py-2 rounded-full flex items-center gap-2"
+        {/* Sort by Dropdown */}
+        <select
+          id="sortKey"
+          value={sortKey}
+          onChange={(e) => {
+            const newKey = e.target.value;
+            if (newKey === sortKey) {
+              // Toggle sort order if the same key is clicked again
+              setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+            } else {
+              setSortKey(newKey);
+              setSortOrder('desc'); // Or 'asc' if you prefer
+            }
+          }}
+          className="px-2 py-2 border border-gray-300 rounded-md text-sm bg-white"
         >
-          <SlidersHorizontal size={16} /> Filter & Sort
-        </button>
+          <option value="createdAt">Created Date</option>
+          <option value="offerClosingDate">Offer Closing Date</option>
+          <option value="askingPrice">Price</option>
+          <option value="rentalYield">Rental Yield</option>
+        </select>
+
+
       </div>
 
-      {/* AI Suggestions */}
-      <div
-        className="max-w-5xl mx-auto transition-all duration-200"
-        style={{ minHeight: '65px' }}
-      >
+      <div className="max-w-5xl mx-auto transition-all duration-200" style={{ minHeight: '65px' }}>
         {searchFocused && !searchQuery && !aiSearchActive && searchMode === 'ai' && (
           <div className="text-xs text-[#6B7280]">
             <p className="mb-1">Try one of these:</p>
@@ -198,7 +187,7 @@ const PropertyFilterBarDesktop = ({
                   key={i}
                   type="button"
                   onMouseDown={(e) => {
-                    e.preventDefault(); // Prevent blur
+                    e.preventDefault();
                     setSearchQuery(q);
                   }}
                   className="bg-[#E5E4F0] hover:bg-[#D4AF37]/20 text-[#1F2937] px-3 py-1 rounded-full text-xs transition"
@@ -221,7 +210,6 @@ const PropertyFilterBarDesktop = ({
           </div>
         )}
 
-        {/* 👇 Show recent searches only when search box is focused and empty */}
         {searchFocused && !searchQuery && recentSearches.length > 0 && (
           <div className="mt-2 space-y-1 text-sm text-gray-600">
             <p className="text-xs text-gray-400">Recent Searches</p>
@@ -229,7 +217,7 @@ const PropertyFilterBarDesktop = ({
               <button
                 key={index}
                 onMouseDown={(e) => {
-                  e.preventDefault(); // Avoid losing focus before click
+                  e.preventDefault();
                   handleSelectRecent(query);
                 }}
                 className="block text-left w-full px-3 py-1 hover:bg-gray-100 rounded"
@@ -250,7 +238,7 @@ const PropertyFilterBarDesktop = ({
               saveRecentSearch(searchQuery);
               const resultsRes = await axiosInstance.post(
                 `${process.env.REACT_APP_API_BASE_URL}/public/property/search`,
-                finalFilters // ✅ send structured filters directly
+                finalFilters
               );
               setAiSearchActive(true);
               onAiSearch(resultsRes.data?.results || []);
@@ -262,11 +250,7 @@ const PropertyFilterBarDesktop = ({
             }
           }}
         />
-
-
-
       </div>
-
     </div>
   );
 };

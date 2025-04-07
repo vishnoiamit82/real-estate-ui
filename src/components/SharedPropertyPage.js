@@ -4,6 +4,7 @@ import axiosInstance from '../axiosInstance';
 import PropertyFields from './PropertyFields';
 import { PROPERTY_SECTION_CONFIGS } from '../config/propertySectionConfigs';
 
+
 const SharedPropertyPage = () => {
     const { shareToken } = useParams();
     const [property, setProperty] = useState(null);
@@ -28,7 +29,9 @@ const SharedPropertyPage = () => {
 
     return (
         <div className="container mx-auto p-6">
-            <h2 className="text-2xl font-bold mb-6">Shared Property Details</h2>
+             <h2 className="text-2xl font-bold mb-6">
+                {property?.address || 'Property Details'}
+            </h2>
 
             <PropertyFields 
                 formData={property}
