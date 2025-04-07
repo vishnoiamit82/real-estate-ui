@@ -29,19 +29,28 @@ const SharedPropertyPage = () => {
 
     return (
         <div className="container mx-auto p-6">
-             <h2 className="text-2xl font-bold mb-6">
-                {property?.address || 'Property Details'}
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h2 className="text-2xl font-bold">
+                    {property?.address || 'Property Details'}
+                </h2>
+                <button
+                    onClick={() => window.location.href = '/public'}
+                    className="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200"
+                >
+                    🏘️ View All Shared Properties
+                </button>
+            </div>
 
-            <PropertyFields 
+            <PropertyFields
                 formData={property}
-                setFormData={() => {}} 
+                setFormData={() => { }}
                 visibleSections={config.visibleSections}
                 readOnly={true}
                 mode="shared"
             />
         </div>
     );
+
 };
 
 export default SharedPropertyPage;

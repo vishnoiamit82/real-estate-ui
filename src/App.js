@@ -153,7 +153,6 @@ function App() {
 
 
                 <Route path="/landing" element={<LandingPage />} />
-
                 <Route path="/login" element={<LoginForm setCurrentUser={setCurrentUser} />} />
                 <Route path="/signup" element={<SignupForm />} />
                 <Route path="/public" element={<CommunityBoard />} />

@@ -109,6 +109,7 @@ const CommunityBoard = () => {
 
       <PropertyViewSwitcher
         properties={sortedProperties}
+        loading={loading} 
         viewMode={viewMode}
         navigate={navigate}
         currentUser={JSON.parse(localStorage.getItem('currentUser'))}

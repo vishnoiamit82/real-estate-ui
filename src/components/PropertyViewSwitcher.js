@@ -18,11 +18,12 @@ const PropertyViewSwitcher = ({
   handleUnshareFromCommunity,
   handlePursueCommunityProperty,
   handleSaveToMyList,
-  deleteSavedProperty
+  deleteSavedProperty,
+  loading
 }) => {
   const hasProperties = properties && properties.length > 0;
 
-  if (!hasProperties) {
+  if (!loading && !hasProperties) {
     return <p className="text-center text-gray-500 py-6">No properties found.</p>;
   }
 
