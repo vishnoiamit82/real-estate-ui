@@ -57,7 +57,7 @@ import {
         label: 'View/Edit',
         icon: Edit2,
         type: 'primary',
-        onClick: () => navigate(`/properties/${property._id}`),
+        onClick: () => navigate(`/edit-property/${property._id}`),
       });
       
       actions.push({
