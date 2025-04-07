@@ -2,6 +2,7 @@ export const PROPERTY_SECTION_CONFIGS = {
   full: {
     visibleSections: [
       "Initial Info",
+      "Audit & Timestamps",
       "Agent & Created Info",
       "Basic Information",
       "Financial Information",
@@ -23,6 +24,7 @@ export const PROPERTY_SECTION_CONFIGS = {
   shared: {
     visibleSections: [
       "Initial Info",
+      "Audit & Timestamps",
       "Basic Information",
       "Financial Information",
       "Property Details",

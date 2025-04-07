@@ -115,8 +115,8 @@ const PropertyCardList = ({
                             <div className="flex flex-wrap items-center gap-2 mt-2">
                                 <span
                                     className={`px-2 py-1 text-xs font-semibold rounded-full ${property.isCommunityShared
-                                            ? 'bg-green-100 text-green-800' // Shared property styles
-                                            : 'bg-blue-100 text-blue-800'   // Private property styles
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-blue-100 text-blue-800'
                                         }`}
                                 >
                                     {property.source === 'created'
@@ -128,7 +128,6 @@ const PropertyCardList = ({
                                             : 'Community Property'}
                                 </span>
 
-
                                 {property.agentId?.name && (
                                     <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
                                         Agent: {property.agentId.name}
@@ -138,12 +137,12 @@ const PropertyCardList = ({
                                 {(property.source === 'created' || property.source === 'saved') && (
                                     <span
                                         className={`px-2 py-1 text-xs font-semibold rounded-full ${property.is_deleted
-                                                ? 'bg-red-500 text-white'
-                                                : property.decisionStatus === 'pursue'
-                                                    ? 'bg-green-500 text-white'
-                                                    : property.decisionStatus === 'on_hold'
-                                                        ? 'bg-yellow-500 text-white'
-                                                        : 'bg-gray-500 text-white'
+                                            ? 'bg-red-500 text-white'
+                                            : property.decisionStatus === 'pursue'
+                                                ? 'bg-green-500 text-white'
+                                                : property.decisionStatus === 'on_hold'
+                                                    ? 'bg-yellow-500 text-white'
+                                                    : 'bg-gray-500 text-white'
                                             }`}
                                     >
                                         {property.is_deleted ? 'Deleted' : property.decisionStatus || 'Undecided'}
@@ -168,6 +167,12 @@ const PropertyCardList = ({
                                     </>
                                 )}
                             </p>
+
+                            {/* Timestamps */}
+                            <div className="text-xs text-gray-400 mt-1">
+                                Created: {new Date(property.createdAt).toLocaleString()}<br />
+                                Updated: {new Date(property.updatedAt).toLocaleString()}
+                            </div>
                         </div>
 
                         {/* Meta Info */}
