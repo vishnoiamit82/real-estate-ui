@@ -142,7 +142,8 @@ import {
     });
   
     // === COMMUNITY PAGE ONLY (Not saved or created) ===
-    if (!source && property.isCommunityShared && property.sharedBy?._id !== currentUser?.id ) {
+    // if (!source && property.isCommunityShared && property.sharedBy?._id !== currentUser?.id ) {
+      if ( property.isCommunityShared ) {
       // actions.push({
       //   label: 'Save to My List',
       //   icon: Star,
