@@ -22,7 +22,7 @@ const PropertyTableView = ({
   };
 
   if (!properties || properties.length === 0) {
-    return <p className="text-center text-gray-500 py-6">No properties found.</p>;
+    return <p className="text-center text-gray-500 py-6"></p>;
   }
 
   return (
