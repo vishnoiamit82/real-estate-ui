@@ -30,7 +30,7 @@ const TagSearchPage = () => {
   return (
     <div className="p-6">
       <button
-        onClick={() => navigate('/')}
+        onClick={() => navigate('/public')}
         className="text-sm text-blue-600 hover:underline mb-4"
       >
         ⬅ Back to all properties
