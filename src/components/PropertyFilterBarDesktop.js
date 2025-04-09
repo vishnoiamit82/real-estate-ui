@@ -23,7 +23,7 @@ const PropertyFilterBarDesktop = ({
   viewMode,
   setViewMode,
   showViewToggle = false,
-  filterOptions,
+  filterOptions = [], // Dynamic filter list
   onAiSearch = () => { },
   searchMode,
   setSearchMode
@@ -31,20 +31,11 @@ const PropertyFilterBarDesktop = ({
   const [searchFocused, setSearchFocused] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
   const [aiDrawerOpen, setAiDrawerOpen] = useState(false);
+  const [availableTags, setAvailableTags] = useState([]);
   const [pendingFilters, setPendingFilters] = useState(() => {
     const saved = localStorage.getItem('lastAISearchFilters');
     return saved ? JSON.parse(saved) : null;
   });
-
-  useEffect(() => {
-    setRecentSearches(getRecentSearches());
-  }, [searchFocused]);
-
-  const handleSelectRecent = (query) => {
-    setSearchQuery(query);
-    saveRecentSearch(query);
-    setCurrentPage?.(1);
-  };
 
   const exampleQueries = [
     "Looking for a house in Mildura for around $550k built after year 2000.",
@@ -54,22 +45,66 @@ const PropertyFilterBarDesktop = ({
     "Property with plans and permits in place"
   ];
 
+  useEffect(() => {
+    setRecentSearches(getRecentSearches());
+  }, [searchFocused]);
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const res = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/public/property/tags`);
+        setAvailableTags(res.data || []);
+      } catch (err) {
+        console.error("Failed to fetch tags:", err);
+      }
+    };
+    fetchTags();
+  }, []);
+
+  const handleSelectRecent = (query) => {
+    setSearchQuery(query);
+    saveRecentSearch(query);
+    setCurrentPage?.(1);
+  };
+
   const handleAiSearch = async () => {
     if (!searchQuery.trim()) return;
-
     try {
-      const response = await axiosInstance.post(
-        `${process.env.REACT_APP_API_BASE_URL}/public/ai-search-preview`,
-        { query: searchQuery }
-      );
+      const response = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/public/ai-search-preview`, {
+        query: searchQuery,
+      });
 
-      const { parsedFilters = {} } = response.data;
+      const parsedFilters = response.data?.parsedFilters || {};
+      const tagSet = new Set();
+
+      if (Array.isArray(parsedFilters.mustHaveTags)) {
+        parsedFilters.mustHaveTags.forEach(tag => tagSet.add(tag));
+      }
+
+      if (Array.isArray(parsedFilters.locations)) {
+        parsedFilters.locations.forEach(loc => {
+          if (availableTags.some(tag => tag.name.toLowerCase() === loc.toLowerCase())) {
+            tagSet.add(loc);
+          }
+        });
+      }
+
+      if (tagSet.size > 0) {
+        parsedFilters.tags = Array.from(tagSet).map(tagName => {
+          const match = availableTags.find(tag => tag.name.toLowerCase() === tagName.toLowerCase());
+          return match || { name: tagName, type: 'unknown' };
+        });
+      }
+
+      delete parsedFilters.mustHaveTags;
+
       const updatedFilters = {
         ...Object.fromEntries(
           Object.keys(currentFilter || {}).map((key) => [key, 'Any'])
         ),
-        ...parsedFilters
+        ...parsedFilters,
       };
+
       setPendingFilters(updatedFilters);
       setAiDrawerOpen(true);
     } catch (error) {
@@ -82,7 +117,7 @@ const PropertyFilterBarDesktop = ({
     setSearchQuery('');
     setAiSearchActive(false);
     onAiSearch(null);
-    setCurrentPage(1);
+    setCurrentPage?.(1);
   };
 
   return (
@@ -94,7 +129,6 @@ const PropertyFilterBarDesktop = ({
         >
           ✨ AI Search
         </button>
-
         <button
           onClick={() => setSearchMode('normal')}
           className={`px-3 py-1 rounded-full ${searchMode === 'normal' ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-600'}`}
@@ -103,8 +137,9 @@ const PropertyFilterBarDesktop = ({
         </button>
       </div>
 
-      <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row items-stretch gap-3">
-        <div className="relative flex-grow">
+      <div className="w-full max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Search Input */}
+        <div className="relative col-span-2">
           <Search className="absolute left-4 top-3 w-5 h-5 text-[#6B7280]" />
           <input
             type="text"
@@ -115,27 +150,19 @@ const PropertyFilterBarDesktop = ({
               if (searchMode === 'normal') {
                 onAiSearch(null);
                 setAiSearchActive(false);
-                setCurrentPage(1);
+                setCurrentPage?.(1);
               }
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && searchMode === 'ai') {
-                handleAiSearch();
-              }
+              if (e.key === 'Enter' && searchMode === 'ai') handleAiSearch();
             }}
             onFocus={() => setSearchFocused(true)}
-            onBlur={() => {
-              setTimeout(() => setSearchFocused(false), 100);
-            }}
+            onBlur={() => setTimeout(() => setSearchFocused(false), 100)}
             className="w-full pl-12 pr-32 py-3 rounded-full border border-[#E5E7EB] bg-white placeholder-[#6B7280] text-sm shadow-sm"
-            disabled={false}
           />
 
           {searchQuery && (
-            <button
-              onClick={handleClearSearch}
-              className="absolute right-28 top-3 text-gray-400 hover:text-gray-600"
-            >
+            <button onClick={handleClearSearch} className="absolute right-28 top-3 text-gray-400 hover:text-gray-600">
               <X size={18} />
             </button>
           )}
@@ -145,41 +172,57 @@ const PropertyFilterBarDesktop = ({
               onClick={handleAiSearch}
               title="AI-powered search"
               className="absolute right-4 top-1.5 text-white bg-[#1F2937] hover:bg-[#111827] text-xs px-4 py-2 rounded-full"
-              disabled={false}
             >
               <Sparkles size={14} className="inline-block mr-1" /> Search
             </button>
           )}
         </div>
 
-        {/* Sort by Dropdown */}
-        <select
-          id="sortKey"
-          value={sortKey}
-          onChange={(e) => {
-            const newKey = e.target.value;
-            if (newKey === sortKey) {
-              // Toggle sort order if the same key is clicked again
-              setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-            } else {
-              setSortKey(newKey);
-              setSortOrder('desc'); // Or 'asc' if you prefer
-            }
-          }}
-          className="px-2 py-2 border border-gray-300 rounded-md text-sm bg-white"
-        >
-          <option value="createdAt">Created Date</option>
-          <option value="offerClosingDate">Offer Closing Date</option>
-          <option value="askingPrice">Price</option>
-          <option value="rentalYield">Rental Yield</option>
-        </select>
+        {/* Sort & Filter */}
+        <div className="flex gap-3">
+          {filterOptions?.length > 0 && (
+            <select
+              value={currentFilter}
+              onChange={(e) => {
+                setCurrentFilter(e.target.value);
+                setCurrentPage?.(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white w-full"
+            >
+              {filterOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          )}
 
-
+          <select
+            id="sortKey"
+            value={sortKey}
+            onChange={(e) => {
+              const newKey = e.target.value;
+              if (newKey === sortKey) {
+                setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+              } else {
+                setSortKey(newKey);
+                setSortOrder('desc');
+              }
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white w-full"
+          >
+            <option value="createdAt">Created Date</option>
+            <option value="offerClosingDate">Offer Closing Date</option>
+            <option value="askingPrice">Price</option>
+            <option value="rentalYield">Rental Yield</option>
+          </select>
+        </div>
       </div>
 
-      <div className="max-w-5xl mx-auto transition-all duration-200" style={{ minHeight: '65px' }}>
+      {/* AI Drawer & Hints */}
+      <div className="max-w-5xl mx-auto">
         {searchFocused && !searchQuery && !aiSearchActive && searchMode === 'ai' && (
-          <div className="text-xs text-[#6B7280]">
+          <div className="text-xs text-[#6B7280] mt-2">
             <p className="mb-1">Try one of these:</p>
             <div className="flex flex-wrap gap-2">
               {exampleQueries.map((q, i) => (
@@ -196,17 +239,6 @@ const PropertyFilterBarDesktop = ({
                 </button>
               ))}
             </div>
-          </div>
-        )}
-
-        {searchFocused && !searchQuery && !aiSearchActive && searchMode === 'normal' && (
-          <div className="text-xs text-gray-600 mt-2 max-w-5xl mx-auto">
-            <p className="mb-1">You can search by:</p>
-            <ul className="list-disc list-inside text-gray-500 space-y-1">
-              <li>🏠 Address (e.g., <em>12 Smith St</em>)</li>
-              <li>👤 Agent or poster name (e.g., <em>John</em>)</li>
-              <li>📍 Suburb or region (e.g., <em>Albury</em>, <em>Central Coast</em>)</li>
-            </ul>
           </div>
         )}
 
@@ -227,30 +259,31 @@ const PropertyFilterBarDesktop = ({
             ))}
           </div>
         )}
-
-        <AISearchDrawer
-          isOpen={aiDrawerOpen}
-          onClose={() => setAiDrawerOpen(false)}
-          filters={pendingFilters}
-          setPendingFilters={setPendingFilters}
-          onConfirm={async (finalFilters) => {
-            try {
-              saveRecentSearch(searchQuery);
-              const resultsRes = await axiosInstance.post(
-                `${process.env.REACT_APP_API_BASE_URL}/public/property/search`,
-                finalFilters
-              );
-              setAiSearchActive(true);
-              onAiSearch(resultsRes.data?.results || []);
-              setCurrentPage(1);
-              setAiDrawerOpen(false);
-            } catch (err) {
-              console.error('Search failed:', err);
-              alert('Search failed. Please try again.');
-            }
-          }}
-        />
       </div>
+
+      <AISearchDrawer
+        isOpen={aiDrawerOpen}
+        onClose={() => setAiDrawerOpen(false)}
+        filters={pendingFilters}
+        setPendingFilters={setPendingFilters}
+        availableTags={availableTags}
+        onConfirm={async (finalFilters) => {
+          try {
+            saveRecentSearch(searchQuery);
+            const resultsRes = await axiosInstance.post(
+              `${process.env.REACT_APP_API_BASE_URL}/public/property/search`,
+              finalFilters
+            );
+            setAiSearchActive(true);
+            onAiSearch(resultsRes.data?.results || []);
+            setCurrentPage?.(1);
+            setAiDrawerOpen(false);
+          } catch (err) {
+            console.error('Search failed:', err);
+            alert('Search failed. Please try again.');
+          }
+        }}
+      />
     </div>
   );
 };

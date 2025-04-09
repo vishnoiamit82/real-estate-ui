@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import propertySchemaFields from "../data/propertySchema";
 import PublicConversationInput from "../utils/PublicConversationInput";
+import Select from 'react-select';
+import { useEffect } from 'react';
+import axiosInstance from '../axiosInstance';
 
 // ✅ Helper functions to support dot-notation nested field access
 const getNestedValue = (obj, path) => {
@@ -17,8 +20,24 @@ const setNestedValue = (obj, path, value) => {
     target[lastKey] = value;
 };
 
+
+
 const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = false, mode = "shared", onChange }) => {
     const [newCheckName, setNewCheckName] = useState("");
+
+    const [availableTags, setAvailableTags] = useState([]);
+
+    useEffect(() => {
+        const fetchTags = async () => {
+          try {
+            const res = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/tags`);
+            setAvailableTags(res.data || []);
+          } catch (err) {
+            console.error("Failed to fetch tags:", err);
+          }
+        };
+        fetchTags();
+      }, []);
 
     const addNewCheck = () => {
         if (!newCheckName.trim()) return;
@@ -78,7 +97,9 @@ const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = fal
                                                         getNestedValue(formData, key).map((item, i) => (
                                                             <div key={i} className="flex items-center gap-2 mb-1">
                                                                 {readOnly ? (
-                                                                    <span className="text-sm text-gray-700">{item}</span>
+                                                                    <span className="text-sm text-gray-700">
+                                                                    {typeof item === 'object' ? item.name || JSON.stringify(item) : item}
+                                                                  </span>
                                                                 ) : (
                                                                     <>
                                                                         <input
@@ -178,6 +199,31 @@ const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = fal
                                                 />
                                             )}
 
+                                            {/* ✅ Special handling for tags */}
+                                            {type === "tags" && (
+                                                <Select
+                                                    isMulti
+                                                    isDisabled={readOnly}
+                                                    options={availableTags.map(tag => ({
+                                                        label: `${tag.name} (${tag.type})`,
+                                                        value: tag
+                                                    }))}
+                                                    value={(getNestedValue(formData, key) || []).map(tag => ({
+                                                        label: `${tag.name} (${tag.type})`,
+                                                        value: tag
+                                                    }))}
+                                                    onChange={(selectedOptions) => {
+                                                        const updatedForm = { ...formData };
+                                                        const tags = selectedOptions.map(opt => opt.value);
+                                                        setNestedValue(updatedForm, key, tags);
+                                                        setFormData(updatedForm);
+                                                    }}
+                                                    placeholder="Select tags..."
+                                                    className="text-sm"
+                                                />
+                                            )}
+
+
                                             {/* ✅ Flexible Dropdown with Text Support */}
                                             {type === "dropdown" && (
                                                 <>
@@ -193,8 +239,8 @@ const PropertyFields = ({ formData, setFormData, visibleSections, readOnly = fal
                                                             }
                                                         }}
                                                         className={`w-full p-2 rounded-md focus:ring focus:ring-blue-300 ${readOnly
-                                                                ? "bg-gray-100 border-none cursor-default"
-                                                                : "border border-gray-300"
+                                                            ? "bg-gray-100 border-none cursor-default"
+                                                            : "border border-gray-300"
                                                             }`}
                                                         disabled={readOnly}
                                                         placeholder="Select or type a value"

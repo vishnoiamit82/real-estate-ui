@@ -58,7 +58,7 @@ const Header = ({ currentUser, onLogout }) => {
                         </NavLink>
                     </li>
 
-                    {currentUser && (
+                    {/* {currentUser && (
                         <li>
                             <NavLink
                                 to="/client-briefs"
@@ -69,7 +69,7 @@ const Header = ({ currentUser, onLogout }) => {
                                 Client Briefs
                             </NavLink>
                         </li>
-                    )}
+                    )} */}
 
 
                     {currentUser?.role === 'admin' && (
@@ -79,6 +79,7 @@ const Header = ({ currentUser, onLogout }) => {
                             <li><NavLink to="/cashflow-calculator" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>Cashflow Calculator</NavLink></li>
                             <li><NavLink to="/user-management" className={({ isActive }) => isActive ? 'text-blue-400 underline' : 'hover:text-blue-400'}>User Management</NavLink></li>
                             <NavLink to="/ai-search-queries" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">AI Search Query Viewer</NavLink>
+                            <NavLink to="/tags" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">Manage tags</NavLink>
                         </>
                     )}
 
@@ -147,7 +148,7 @@ const Header = ({ currentUser, onLogout }) => {
                     <NavLink to="/" onClick={() => setMenuOpen(false)} className="hover:text-blue-400">
                         My Properties
                     </NavLink>
-                    {currentUser && (
+                    {/* {currentUser && (
                         <NavLink
                             to="/client-briefs"
                             onClick={() => setMenuOpen(false)}
@@ -155,7 +156,7 @@ const Header = ({ currentUser, onLogout }) => {
                         >
                             Client Briefs
                         </NavLink>
-                    )}
+                    )} */}
 
                     {currentUser?.role === 'admin' && (
                         <>

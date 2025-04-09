@@ -1,5 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect,useMemo } from 'react';
 import PropertyMetaCard from './PropertyMetaCard';
+
+import { useNavigate } from 'react-router-dom';
+
 import {
     MoreVertical,
     Mail,
@@ -18,6 +21,11 @@ import {
 } from 'lucide-react';
 import { getPropertyActions } from '../utils/getPropertyActions';
 
+    // Wherever you map over properties (e.g. PropertyCardList or PropertySourcingPage)
+import useUnreadEmailCounts from '../hooks/userUnreadEmailCounts';
+
+
+
 const PropertyCardList = ({
     properties = [],
     navigate,
@@ -33,10 +41,28 @@ const PropertyCardList = ({
     handleUnshareFromCommunity,
     handlePursueCommunityProperty,
     deleteSavedProperty,
-    currentUser
+    currentUser,
+    setAiSearchActive,     // ✅ NEW
+    onAiSearch,            // ✅ NEW
+    setCurrentPage         // ✅ NEW
 }) => {
     const [expandedCard, setExpandedCard] = useState(null);
     const dropdownRef = useRef(null);
+    const navigateTo = useNavigate(); // keep this for navigation
+
+
+
+    const propertyIds = useMemo(() => properties.map(p => p._id), [properties]);
+
+    const unreadCounts = useUnreadEmailCounts(propertyIds);
+
+
+    // ✅ Handle tag click to trigger backend search
+    const handleTagClick = (tag) => {
+        const tagName = typeof tag === 'object' ? tag.name : tag;
+        navigate(`/search/tag/${encodeURIComponent(tagName)}`);
+      };
+      
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -69,6 +95,7 @@ const PropertyCardList = ({
                 const actions = getPropertyActions({
                     property,
                     source: property.source,
+                    unreadCounts, 
                     handlers: {
                         navigate,
                         setSelectedPropertyForEmail,
@@ -178,19 +205,24 @@ const PropertyCardList = ({
                         {/* Meta Info */}
                         <PropertyMetaCard property={property} />
 
+
                         {/* Tags */}
-                        {Array.isArray(property.tags) && property.tags.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-2">
-                                {property.tags.map((tag, idx) => (
-                                    <span
-                                        key={idx}
-                                        className="inline-block text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-200"
-                                    >
-                                        #{tag}
-                                    </span>
-                                ))}
-                            </div>
-                        )}
+                        {
+                            Array.isArray(property.tags) && property.tags.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    {property.tags.map((tag, idx) => (
+                                        <span
+                                            key={idx}
+                                            onClick={() => handleTagClick(tag)}
+                                            className="inline-block text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-200 cursor-pointer hover:bg-blue-100"
+                                        >
+                                            #{typeof tag === 'object' ? tag.name : tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            )
+                        }
+
 
                         {/* Actions */}
                         <div className="mt-auto pt-4">

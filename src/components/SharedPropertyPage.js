@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import axiosInstance from '../axiosInstance';
 import PropertyFields from './PropertyFields';
 import { PROPERTY_SECTION_CONFIGS } from '../config/propertySectionConfigs';
-
+import ShareButtons from './ShareButtons';
 
 const SharedPropertyPage = () => {
     const { shareToken } = useParams();
@@ -27,6 +27,8 @@ const SharedPropertyPage = () => {
     if (error) return <div className="text-red-500">{error}</div>;
     if (!property) return <div>Loading...</div>;
 
+    const shareUrl = `${window.location.origin}/shared/${shareToken}`;
+
     return (
         <div className="container mx-auto p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -41,6 +43,9 @@ const SharedPropertyPage = () => {
                 </button>
             </div>
 
+            {/* Share Buttons */}
+            <ShareButtons property={property} shareUrl={shareUrl} />
+
             <PropertyFields
                 formData={property}
                 setFormData={() => { }}
@@ -50,7 +55,6 @@ const SharedPropertyPage = () => {
             />
         </div>
     );
-
 };
 
 export default SharedPropertyPage;

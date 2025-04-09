@@ -18,7 +18,7 @@ const propertySchemaFields = {
         { key: "videoAvailableDate", label: "🎥 Video Available Date", type: "text" },
         // { key: "subdivisionPotential", label: "Subdividable", type: "string" },
         { key: "mapsLink", label: "🗺️ Google Maps Link", type: "text" },
-        { key: "tags", label: "🏷️ Tags", type: "array" }
+        { key: "tags", label: "🏷️ Tags", type: "tags" }
 
 
     ],

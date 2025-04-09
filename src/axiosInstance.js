@@ -29,7 +29,8 @@ const protectedEndpoints = [
   '/api/send-email',
   '/api/saved-properties',
   '/api/property-conversation',
-  '/api/ai-search-queries'
+  '/api/ai-search-queries',
+  '/api/tags'
 ];
 
 export const attachSpinnerInterceptor = (setLoadingFn) => {

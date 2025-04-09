@@ -41,6 +41,9 @@ import { ToastContainer, toast } from 'react-toastify';
 import CommunityBoard from './components/CommunityBoard';
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/react"
+import TagsManager from './components/TagsManager'
+import TagSearchPage from './components/TagSearchPage'
+
 
 
 // Inside your App JSX
@@ -156,6 +159,8 @@ function App() {
                 <Route path="/login" element={<LoginForm setCurrentUser={setCurrentUser} />} />
                 <Route path="/signup" element={<SignupForm />} />
                 <Route path="/public" element={<CommunityBoard />} />
+                <Route path="/search/tag/:tagName" element={<TagSearchPage />} />
+
                 <Route path="/" element={<ProtectedRoute><PropertyList /></ProtectedRoute>} />
                 <Route path="/add-property" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
                 <Route path="/properties/:id" element={<ProtectedRoute><PropertyDetail /></ProtectedRoute>} />
@@ -177,8 +182,10 @@ function App() {
                 <Route path="/user-management" element={<ProtectedRoute requiredRole="admin"><UserManagement /></ProtectedRoute>} />
                 <Route path="/agents" element={<ProtectedRoute requiredRole="admin"><AgentList /></ProtectedRoute>} />
                 <Route path="/ai-search-queries" element={<ProtectedRoute requiredRole="admin"><AISearchQueryViewer /></ProtectedRoute>} />
+                <Route path="/tags" element={<ProtectedRoute requiredRole="admin"><TagsManager /></ProtectedRoute>} />
 
                 <Route path="/saved-properties" element={<ProtectedRoute><SavedPropertiesPage /></ProtectedRoute>} />
+                
 
               </Routes>
             
