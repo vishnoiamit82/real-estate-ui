@@ -44,7 +44,8 @@ const PropertyCardList = ({
     currentUser,
     setAiSearchActive,     // ✅ NEW
     onAiSearch,            // ✅ NEW
-    setCurrentPage         // ✅ NEW
+    setCurrentPage,         // ✅ NEW
+    isPublic
 }) => {
     const [expandedCard, setExpandedCard] = useState(null);
     const dropdownRef = useRef(null);
@@ -54,7 +55,9 @@ const PropertyCardList = ({
 
     const propertyIds = useMemo(() => properties.map(p => p._id), [properties]);
 
-    const unreadCounts = useUnreadEmailCounts(propertyIds);
+    const rawUnreadCounts = useUnreadEmailCounts(propertyIds, !isPublic); // ✅ always called
+    const unreadCounts = isPublic ? {} : rawUnreadCounts;
+
 
 
     // ✅ Handle tag click to trigger backend search

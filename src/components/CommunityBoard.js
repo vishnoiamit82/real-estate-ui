@@ -178,6 +178,7 @@ const CommunityBoard = () => {
         handlePursueCommunityProperty={() => {}}
         handleSaveToMyList={() => {}}
         deleteSavedProperty={() => {}}
+        isPublic={true}
       />
 
       {/* Pagination UI */}

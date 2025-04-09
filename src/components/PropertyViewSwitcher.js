@@ -19,7 +19,8 @@ const PropertyViewSwitcher = ({
   handlePursueCommunityProperty,
   handleSaveToMyList,
   deleteSavedProperty,
-  loading
+  loading,
+  isPublic
 }) => {
   const hasProperties = properties && properties.length > 0;
 
@@ -44,6 +45,7 @@ const PropertyViewSwitcher = ({
       handlePursueCommunityProperty={handlePursueCommunityProperty}
       handleSaveToMyList={handleSaveToMyList}
       deleteSavedProperty={deleteSavedProperty}
+      isPublic={isPublic}
     />
   ) : (
     <PropertyTableView

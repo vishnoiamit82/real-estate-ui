@@ -1,12 +1,17 @@
+// hooks/useUnreadEmailCounts.js
 import { useEffect, useState } from 'react';
 import axiosInstance from '../axiosInstance';
 
-const useUnreadEmailCounts = (propertyIds = []) => {
+const useUnreadEmailCounts = (propertyIds = [], isEnabled = true) => {
   const [counts, setCounts] = useState({});
   const [lastFetchedIds, setLastFetchedIds] = useState([]);
 
   useEffect(() => {
-    const idsChanged = JSON.stringify(lastFetchedIds.sort()) !== JSON.stringify([...propertyIds].sort());
+    if (!isEnabled) return;
+
+    const idsChanged =
+      JSON.stringify(lastFetchedIds.sort()) !== JSON.stringify([...propertyIds].sort());
+
     if (!propertyIds.length || !idsChanged) return;
 
     const fetchCounts = async () => {
@@ -22,7 +27,7 @@ const useUnreadEmailCounts = (propertyIds = []) => {
     };
 
     fetchCounts();
-  }, [propertyIds, lastFetchedIds]);
+  }, [propertyIds, lastFetchedIds, isEnabled]);
 
   return counts;
 };
