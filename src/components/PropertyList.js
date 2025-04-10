@@ -18,7 +18,7 @@ const PropertySourcingPage = () => {
     const [viewMode, setViewMode] = useState('card');
 
     const [aiResults, setAiResults] = useState(null);
-    const [searchMode, setSearchMode] = useState('ai');
+    const [searchMode, setSearchMode] = useState('normal');
     const [aiSearchActive, setAiSearchActive] = useState(false);
     const [createdProperties, setCreatedProperties] = useState([]);
     const [savedProperties, setSavedProperties] = useState([]);
@@ -41,6 +41,7 @@ const PropertySourcingPage = () => {
     const [loadingSaved, setLoadingSaved] = useState(true);
     const [totalPagesCreated, setTotalPagesCreated] = useState(1);
     const [totalPagesSaved, setTotalPagesSaved] = useState(1);
+
     const propertiesPerPage = 12;
 
 
@@ -56,20 +57,20 @@ const PropertySourcingPage = () => {
 
     useEffect(() => {
         if (activeTab === 'created') {
-          fetchCreatedProperties();
+            fetchCreatedProperties();
         } else {
-          fetchSavedProperties();
+            fetchSavedProperties();
         }
         setCurrentPage(1);
-      }, [currentFilter]);
-      
-      useEffect(() => {
+    }, [currentFilter]);
+
+    useEffect(() => {
         if (activeTab === 'created') {
-          fetchCreatedProperties();
+            fetchCreatedProperties();
         } else {
-          fetchSavedProperties();
+            fetchSavedProperties();
         }
-      }, [currentPage, activeTab]);
+    }, [currentPage, activeTab]);
 
     const getStatusQueryFromFilter = (filter) => {
         switch (filter) {
@@ -320,6 +321,11 @@ const PropertySourcingPage = () => {
         }
     }, [selectedProperty]);
 
+    const visibleProperties = aiSearchActive && aiResults
+        ? aiResults
+        : getFilteredProperties().filter((prop) => prop.source === activeTab);
+
+
     return (
         <div className="container mx-auto p-6 space-y-6">
             {/* Header Section */}
@@ -412,61 +418,63 @@ const PropertySourcingPage = () => {
                     loadingCreated ? (
                         <LoadingSpinner message="Loading created properties..." />
                     )
-                        : getFilteredProperties().filter((prop) => prop.source === 'created').length > 0 ? (
-                            <PropertyCardList
-                                properties={getFilteredProperties().filter((prop) => prop.source === 'created')}
-                                navigate={navigate}
-                                updateDecisionStatus={(property, status) => handleUpdateDecisionStatus(property, status)}
-                                setSelectedPropertyForEmail={setSelectedPropertyForEmail}
-                                setSelectedAgent={setSelectedAgent}
-                                setSelectedPropertyForNotes={setSelectedPropertyForNotes}
-                                handleShareProperty={handleShareProperty}
-                                handleShareToCommunity={handleShareToCommunity}
-                                handleUnshareFromCommunity={handleUnshareFromCommunity}
-                                deleteProperty={deleteProperty}
-                                restoreProperty={restoreProperty}
-                                deleteSavedProperty={deleteSavedProperty}
-                                currentUser={currentUser}
-                            />
-                        ) : (
-                            <div className="text-gray-600 text-sm leading-relaxed border border-dashed border-gray-300 p-5 rounded-md bg-gray-50 shadow-sm">
-                                <p className="font-semibold text-gray-700 text-base mb-2">You haven't created any properties yet.</p>
-                                <p>🚀 Our goal is to help you manage <strong>end-to-end property sourcing</strong> — from discovery to sharing, shortlisting, email conversations, due diligence and beyond.</p>
-                                <p className="mt-2">You can easily <strong>copy-paste property details</strong> from SMS, WhatsApp, Facebook messages, Domain, RealEstate.com.au, or any other source — and turn them into structured listings in seconds.</p>
-                                <p className="mt-2">✉️ Once added, you can share properties with the community, manage notes, track decision status, or even send emails to agents <strong>directly from the app</strong>.</p>
-                                <button
-                                    onClick={() => navigate('/add-property')}
-                                    className="mt-4 inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition"
-                                >
-                                    ➕ Add Your First Property
-                                </button>
-                                <p className="mt-3 text-sm text-gray-500">
-                                    Need inspiration? <span onClick={() => navigate('/public')} className="text-blue-600 hover:underline cursor-pointer">Explore what others are sharing →</span>
-                                </p>
-                            </div>
-                        )
+                        : visibleProperties.length > 0
+                            ? (
+                                <PropertyCardList
+                                    properties={visibleProperties}
+                                    navigate={navigate}
+                                    updateDecisionStatus={(property, status) => handleUpdateDecisionStatus(property, status)}
+                                    setSelectedPropertyForEmail={setSelectedPropertyForEmail}
+                                    setSelectedAgent={setSelectedAgent}
+                                    setSelectedPropertyForNotes={setSelectedPropertyForNotes}
+                                    handleShareProperty={handleShareProperty}
+                                    handleShareToCommunity={handleShareToCommunity}
+                                    handleUnshareFromCommunity={handleUnshareFromCommunity}
+                                    deleteProperty={deleteProperty}
+                                    restoreProperty={restoreProperty}
+                                    deleteSavedProperty={deleteSavedProperty}
+                                    currentUser={currentUser}
+                                />
+                            ) : (
+                                <div className="text-gray-600 text-sm leading-relaxed border border-dashed border-gray-300 p-5 rounded-md bg-gray-50 shadow-sm">
+                                    <p className="font-semibold text-gray-700 text-base mb-2">You haven't created any properties yet.</p>
+                                    <p>🚀 Our goal is to help you manage <strong>end-to-end property sourcing</strong> — from discovery to sharing, shortlisting, email conversations, due diligence and beyond.</p>
+                                    <p className="mt-2">You can easily <strong>copy-paste property details</strong> from SMS, WhatsApp, Facebook messages, Domain, RealEstate.com.au, or any other source — and turn them into structured listings in seconds.</p>
+                                    <p className="mt-2">✉️ Once added, you can share properties with the community, manage notes, track decision status, or even send emails to agents <strong>directly from the app</strong>.</p>
+                                    <button
+                                        onClick={() => navigate('/add-property')}
+                                        className="mt-4 inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition"
+                                    >
+                                        ➕ Add Your First Property
+                                    </button>
+                                    <p className="mt-3 text-sm text-gray-500">
+                                        Need inspiration? <span onClick={() => navigate('/public')} className="text-blue-600 hover:underline cursor-pointer">Explore what others are sharing →</span>
+                                    </p>
+                                </div>
+                            )
                 ) : loadingSaved ? (
                     <p className="text-sm text-gray-500">Loading saved properties...</p>
-                ) : getFilteredProperties().filter((prop) => prop.source === 'saved').length > 0 ? (
-                    <PropertyCardList
-                        properties={getFilteredProperties().filter((prop) => prop.source === 'saved')}
-                        navigate={navigate}
-                        updateDecisionStatus={(property, status) => handleUpdateDecisionStatus(property, status)}
-                        setSelectedPropertyForEmail={setSelectedPropertyForEmail}
-                        setSelectedAgent={setSelectedAgent}
-                        setSelectedPropertyForNotes={setSelectedPropertyForNotes}
-                        handleShareProperty={handleShareProperty}
-                        handleShareToCommunity={handleShareToCommunity}
-                        handleUnshareFromCommunity={handleUnshareFromCommunity}
-                        deleteProperty={deleteProperty}
-                        restoreProperty={restoreProperty}
-                        deleteSavedProperty={deleteSavedProperty}
-                        handlePursueCommunityProperty={handlePursueCommunityProperty}
-                        currentUser={currentUser}
-                    />
-                ) : (
-                    <p className="text-gray-500 text-sm">No saved properties from community yet.</p>
-                )}
+                ) : visibleProperties.length > 0
+                    ? (
+                        <PropertyCardList
+                            properties={visibleProperties}
+                            navigate={navigate}
+                            updateDecisionStatus={(property, status) => handleUpdateDecisionStatus(property, status)}
+                            setSelectedPropertyForEmail={setSelectedPropertyForEmail}
+                            setSelectedAgent={setSelectedAgent}
+                            setSelectedPropertyForNotes={setSelectedPropertyForNotes}
+                            handleShareProperty={handleShareProperty}
+                            handleShareToCommunity={handleShareToCommunity}
+                            handleUnshareFromCommunity={handleUnshareFromCommunity}
+                            deleteProperty={deleteProperty}
+                            restoreProperty={restoreProperty}
+                            deleteSavedProperty={deleteSavedProperty}
+                            handlePursueCommunityProperty={handlePursueCommunityProperty}
+                            currentUser={currentUser}
+                        />
+                    ) : (
+                        <p className="text-gray-500 text-sm">No saved properties from community yet.</p>
+                    )}
             </div>
 
 
@@ -490,13 +498,16 @@ const PropertySourcingPage = () => {
             )}
 
             {/* Pagination */}
-            <Pagination
-                count={activeTab === 'created' ? totalPagesCreated : totalPagesSaved}
-                page={currentPage}
-                onChange={(e, value) => setCurrentPage(value)}
-                variant="outlined"
-                shape="rounded"
-            />
+            {!aiSearchActive && (
+                <Pagination
+                    count={activeTab === 'created' ? totalPagesCreated : totalPagesSaved}
+                    page={currentPage}
+                    onChange={(e, value) => setCurrentPage(value)}
+                    variant="outlined"
+                    shape="rounded"
+                />
+            )}
+
 
 
         </div>

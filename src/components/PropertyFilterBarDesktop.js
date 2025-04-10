@@ -7,6 +7,9 @@ import {
 import axiosInstance from '../axiosInstance';
 import { getRecentSearches, saveRecentSearch } from '../utils/recentSearchUtils';
 import AISearchDrawer from './AISearchDrawer';
+import { useCallback } from 'react';
+import debounce from 'lodash.debounce'; // or write your own
+
 
 const PropertyFilterBarDesktop = ({
   currentFilter,
@@ -29,6 +32,8 @@ const PropertyFilterBarDesktop = ({
   setSearchMode
 }) => {
   const [searchFocused, setSearchFocused] = useState(false);
+  const [liveResults, setLiveResults] = useState([]);
+
   const [recentSearches, setRecentSearches] = useState([]);
   const [aiDrawerOpen, setAiDrawerOpen] = useState(false);
   const [availableTags, setAvailableTags] = useState([]);
@@ -120,21 +125,45 @@ const PropertyFilterBarDesktop = ({
     setCurrentPage?.(1);
   };
 
+  const debouncedSearch = useCallback(
+    debounce(async (query) => {
+      if (!query.trim()) {
+        setLiveResults([]);
+        return;
+      }
+      try {
+        const res = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/public/property/search`, {
+          address: query,
+        });
+        setLiveResults(res.data?.results || []);
+        setAiSearchActive(true);
+        onAiSearch(res.data?.results || []);
+        setCurrentPage?.(1);
+      } catch (error) {
+        console.error('Live search failed:', error);
+      }
+    }, 400),
+    []
+  );
+
+
   return (
     <div className="bg-[#F8F9FA] p-4 rounded-lg shadow-sm space-y-4 text-[#2D2D2D] border border-[#E5E7EB]">
       <div className="max-w-5xl mx-auto flex gap-2 text-sm">
-        <button
-          onClick={() => setSearchMode('ai')}
-          className={`px-3 py-1 rounded-full ${searchMode === 'ai' ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'}`}
-        >
-          ✨ AI Search
-        </button>
         <button
           onClick={() => setSearchMode('normal')}
           className={`px-3 py-1 rounded-full ${searchMode === 'normal' ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-600'}`}
         >
           🔍 Normal Search
         </button>
+
+        <button
+          onClick={() => setSearchMode('ai')}
+          className={`px-3 py-1 rounded-full ${searchMode === 'ai' ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'}`}
+        >
+          ✨ AI Search
+        </button>
+
       </div>
 
       <div className="w-full max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -143,16 +172,21 @@ const PropertyFilterBarDesktop = ({
           <Search className="absolute left-4 top-3 w-5 h-5 text-[#6B7280]" />
           <input
             type="text"
-            placeholder={aiSearchActive ? 'AI filter applied...' : 'Search for properties...'}
+            placeholder={
+              searchMode === 'ai'
+                ? 'Type a natural query (e.g., high yield house in Logan under 800k)'
+                : 'Search by address or tag'
+            }
+
             value={searchQuery}
             onChange={(e) => {
-              setSearchQuery(e.target.value);
+              const query = e.target.value;
+              setSearchQuery(query);
               if (searchMode === 'normal') {
-                onAiSearch(null);
-                setAiSearchActive(false);
-                setCurrentPage?.(1);
+                debouncedSearch(query);
               }
             }}
+
             onKeyDown={(e) => {
               if (e.key === 'Enter' && searchMode === 'ai') handleAiSearch();
             }}
@@ -241,6 +275,18 @@ const PropertyFilterBarDesktop = ({
             </div>
           </div>
         )}
+
+        {searchFocused && !searchQuery && !aiSearchActive && searchMode === 'normal' && (
+          <div className="text-xs text-[#6B7280] mt-2">
+            <p className="mb-1">Try searching:</p>
+            <ul className="list-disc pl-5 space-y-1 text-xs text-gray-600">
+              <li><span className="font-medium text-gray-800">Suburb:</span> <code>logan</code>, <code>ipswich</code></li>
+              <li><span className="font-medium text-gray-800">Tag/Feature:</span> <code>depreciationBenefit</code>, <code></code></li>
+              <li><span className="font-medium text-gray-800">Partial Match:</span> <code>lacewing</code> (to match addresses)</li>
+            </ul>
+          </div>
+        )}
+
 
         {searchFocused && !searchQuery && recentSearches.length > 0 && (
           <div className="mt-2 space-y-1 text-sm text-gray-600">

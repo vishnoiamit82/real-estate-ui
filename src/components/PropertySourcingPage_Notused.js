@@ -14,6 +14,9 @@ const PropertySourcingPage = () => {
   const [sortKey, setSortKey] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
+  const [aiSearchActive, setAiSearchActive] = useState(false);
+  const [aiResults, setAiResults] = useState([]);
+
   const propertiesPerPage = 12;
 
   const navigate = useNavigate();
@@ -46,18 +49,18 @@ const PropertySourcingPage = () => {
     fetchCreatedProperties();
     setCurrentPage(1);
   }, [currentFilter]);
-  
+
 
 
   const fetchCreatedProperties = async () => {
     try {
       const statusQuery = getStatusQueryFromFilter(currentFilter);
       console.log('[FETCH] calling with filter:', currentFilter, '→', statusQuery); // 👀 log this
-  
+
       const queryParams = new URLSearchParams();
       if (statusQuery) queryParams.append('status', statusQuery);
       queryParams.append('mine', 'true');
-  
+
       const response = await axiosInstance.get(
         `${process.env.REACT_APP_API_BASE_URL}/properties?${queryParams.toString()}`
       );
@@ -66,7 +69,7 @@ const PropertySourcingPage = () => {
       console.error('Error fetching created properties:', error);
     }
   };
-  
+
 
 
   const fetchSavedProperties = async () => {
@@ -122,13 +125,16 @@ const PropertySourcingPage = () => {
 
     return sorted;
   };
+  
+  const allFiltered = aiSearchActive ? aiResults : getFilteredProperties();
 
-  const paginatedProperties = getFilteredProperties().slice(
+  const paginatedProperties = allFiltered.slice(
     (currentPage - 1) * propertiesPerPage,
     currentPage * propertiesPerPage
   );
-
-  const totalPages = Math.ceil(getFilteredProperties().length / propertiesPerPage);
+  
+  const totalPages = Math.ceil(allFiltered.length / propertiesPerPage);
+  
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -156,7 +162,11 @@ const PropertySourcingPage = () => {
           sortOrder={sortOrder}
           setSortOrder={setSortOrder}
           setCurrentPage={setCurrentPage}
+          aiSearchActive={aiSearchActive}
+          setAiSearchActive={setAiSearchActive}
+          onAiSearch={setAiResults}
         />
+
       </div>
 
       <PropertyCardList

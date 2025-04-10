@@ -7,6 +7,8 @@ import { toast } from 'react-toastify';
 import PropertyFilterBar from './PropertyFilterBar';
 import PropertyViewSwitcher from './PropertyViewSwitcher';
 import Pagination from '@mui/material/Pagination';
+import { useCallback } from 'react';
+import debounce from 'lodash.debounce';
 
 const CommunityBoard = () => {
   const [sharedProperties, setSharedProperties] = useState([]);
@@ -25,10 +27,12 @@ const CommunityBoard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [aiResults, setAiResults] = useState(null);
-  const [searchMode, setSearchMode] = useState('ai');
+  const [searchMode, setSearchMode] = useState('normal');
   const [aiSearchActive, setAiSearchActive] = useState(false);
   const navigate = useNavigate();
   const limit = 12;
+
+  
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -72,21 +76,19 @@ const CommunityBoard = () => {
     fetchSharedProperties();
   }, [propertyTypeFilter, debouncedPostedWithinDays, currentPage]);
 
-  const filteredProperties = sharedProperties.filter((property) => {
-    const address = property.address?.toLowerCase() || '';
-    const sharedByName = property.sharedBy?.name?.toLowerCase() || '';
-    return (
-      address.includes(searchQuery.toLowerCase()) ||
-      sharedByName.includes(searchQuery.toLowerCase())
-    );
-  });
+  // const filteredProperties = sharedProperties.filter((property) => {
+  //   const address = property.address?.toLowerCase() || '';
+  //   const sharedByName = property.sharedBy?.name?.toLowerCase() || '';
+  //   return (
+  //     address.includes(searchQuery.toLowerCase()) ||
+  //     sharedByName.includes(searchQuery.toLowerCase())
+  //   );
+  // });
 
-  const displayedProperties =
-    searchMode === 'ai'
-      ? aiSearchActive
-        ? aiResults || []
-        : sharedProperties
-      : filteredProperties;
+  const displayedProperties = aiSearchActive
+  ? aiResults || []
+  : sharedProperties;
+
 
   const sortedProperties = [...displayedProperties].sort((a, b) => {
     const valA = a[sortKey];
@@ -97,6 +99,31 @@ const CommunityBoard = () => {
     if (typeof valA === 'number') return sortOrder === 'asc' ? valA - valB : valB - valA;
     return 0;
   });
+
+
+
+const debouncedSearch = useCallback(
+  debounce(async (query) => {
+    if (!query.trim()) {
+      setAiSearchActive(false);
+      setAiResults(null);
+      return;
+    }
+    try {
+      const res = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/public/property/search`, {
+        address: query,
+      });
+      setAiSearchActive(true);
+      setAiResults(res.data?.results || []);
+      setCurrentPage(1);
+    } catch (error) {
+      console.error('Community search failed:', error);
+      toast.error('Search failed. Please try again.');
+    }
+  }, 400),
+  []
+);
+
 
   return (
     <div className="container mx-auto p-6">
@@ -128,7 +155,12 @@ const CommunityBoard = () => {
         currentFilter={propertyTypeFilter}
         setCurrentFilter={setPropertyTypeFilter}
         searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+        setSearchQuery={(query) => {
+          setSearchQuery(query);
+          if (searchMode === 'normal') {
+            debouncedSearch(query);
+          }
+        }}
         sortKey={sortKey}
         setSortKey={setSortKey}
         sortOrder={sortOrder}

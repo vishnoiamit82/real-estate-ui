@@ -163,18 +163,18 @@ export const getPropertyActions = ({
     }
 
 
-    // actions.push({
-    //   label: 'Message Poster',
-    //   icon: Mail,
-    //   type: 'primary',
-    //   onClick: () => {
-    //     setSelectedPropertyForEmail(property);
-    //     setSelectedAgent({
-    //       name: property.sharedBy?.name,
-    //       email: property.sharedBy?.email,
-    //     });
-    //   },
-    // });
+    actions.push({
+      label: 'Message Poster',
+      icon: Mail,
+      type: 'primary',
+      onClick: () => {
+        setSelectedPropertyForEmail(property);
+        setSelectedAgent({
+          name: property.sharedBy?.name,
+          email: property.sharedBy?.email,
+        });
+      },
+    });
   }
 
   // === SAVED PROPERTIES ===
