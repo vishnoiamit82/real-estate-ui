@@ -57,18 +57,18 @@ const PropertyFilterBarMobile = ({
     return (
         <div className="bg-white px-4 py-3 shadow rounded-md space-y-3">
             <div className="flex gap-2 text-sm">
-                <button
+                {/* <button
                     onClick={() => setSearchMode('ai')}
                     className={`flex-1 py-1 rounded-full ${searchMode === 'ai' ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'}`}
                 >
                     ✨ AI Search
-                </button>
-                <button
+                </button> */}
+                {/* <button
                     onClick={() => setSearchMode('normal')}
                     className={`flex-1 py-1 rounded-full ${searchMode === 'normal' ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-600'}`}
                 >
                     🔍 Normal
-                </button>
+                </button> */}
             </div>
 
             <div className="relative">

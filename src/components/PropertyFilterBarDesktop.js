@@ -150,19 +150,19 @@ const PropertyFilterBarDesktop = ({
   return (
     <div className="bg-[#F8F9FA] p-4 rounded-lg shadow-sm space-y-4 text-[#2D2D2D] border border-[#E5E7EB]">
       <div className="max-w-5xl mx-auto flex gap-2 text-sm">
-        <button
+        {/* <button
           onClick={() => setSearchMode('normal')}
           className={`px-3 py-1 rounded-full ${searchMode === 'normal' ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-600'}`}
         >
           🔍 Normal Search
-        </button>
+        </button> */}
 
-        <button
+        {/* <button
           onClick={() => setSearchMode('ai')}
           className={`px-3 py-1 rounded-full ${searchMode === 'ai' ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'}`}
         >
           ✨ AI Search
-        </button>
+        </button> */}
 
       </div>
 
