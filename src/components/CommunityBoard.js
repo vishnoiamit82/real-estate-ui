@@ -9,6 +9,8 @@ import PropertyViewSwitcher from './PropertyViewSwitcher';
 import Pagination from '@mui/material/Pagination';
 import { useCallback } from 'react';
 import debounce from 'lodash.debounce';
+import SharedFilters from './SharedFilters';
+
 
 const CommunityBoard = () => {
   const [sharedProperties, setSharedProperties] = useState([]);
@@ -31,50 +33,71 @@ const CommunityBoard = () => {
   const [aiSearchActive, setAiSearchActive] = useState(false);
   const navigate = useNavigate();
   const limit = 12;
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [totalCount, setTotalCount] = useState(0);
+  const [allCount, setAllCount] = useState(0);
 
   
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDebouncedPostedWithinDays(postedWithinDays);
-    }, 400);
-    return () => clearTimeout(timeout);
-  }, [postedWithinDays]);
 
-  useEffect(() => {
-    const fetchSharedProperties = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (debouncedPostedWithinDays && debouncedPostedWithinDays !== 9999) {
-          params.append('posted_within_days', debouncedPostedWithinDays.toString());
+
+
+  const debouncedFetch = useCallback(
+    debounce((filters) => {
+      const fetchData = async () => {
+        try {
+          const res = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/public/property/search`, filters);
+          setAiResults(res.data?.results || []);
+          setAiSearchActive(true);
+          setTotalPages(res.data?.totalPages || 1);
+          setCurrentPage(filters.page || 1);
+          setTotalCount(res.data?.totalCount || 0);
+          setAllCount(res.data?.allCount || 0);
+        } catch (err) {
+          console.error('Search failed:', err);
+          toast.error('Failed to fetch properties.');
+        } finally {
+          setLoading(false);
         }
+      };
 
-        if (propertyTypeFilter === 'active') {
-          params.append('is_deleted', 'false');
-        } else if (propertyTypeFilter === 'all') {
-          params.append('include_deleted', 'true');
-        }
+      fetchData();
+    }, 400),
+    []
+  );
 
-        params.append('page', currentPage.toString());
-        params.append('limit', limit.toString());
 
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/properties/community?${params.toString()}`
-        );
 
-        const result = response.data;
-        setSharedProperties(Array.isArray(result) ? result : result.data || []);
-        setTotalPages(result.totalPages || 1);
-      } catch (error) {
-        console.error('Error fetching community properties:', error);
-      } finally {
-        setLoading(false);
-      }
+  useEffect(() => {
+    setLoading(true);
+
+    const payload = {
+      address: searchQuery || '',
+      minPrice: minPrice ? Number(minPrice) : undefined,
+      maxPrice: maxPrice ? Number(maxPrice) : undefined,
+      postedWithinDays: Number(postedWithinDays),
+      status: propertyTypeFilter,
+      page: currentPage,
+      limit,
+      sortKey,
+      sortOrder,
     };
 
-    fetchSharedProperties();
-  }, [propertyTypeFilter, debouncedPostedWithinDays, currentPage]);
+    debouncedFetch(payload);
+    return () => debouncedFetch.cancel();
+  }, [
+    searchQuery,
+    minPrice,
+    maxPrice,
+    postedWithinDays,
+    propertyTypeFilter,
+    currentPage,
+    sortKey,
+    sortOrder,
+  ]);
+
+
 
   // const filteredProperties = sharedProperties.filter((property) => {
   //   const address = property.address?.toLowerCase() || '';
@@ -86,71 +109,28 @@ const CommunityBoard = () => {
   // });
 
   const displayedProperties = aiSearchActive
-  ? aiResults || []
-  : sharedProperties;
+    ? aiResults || []
+    : sharedProperties;
 
 
-  const sortedProperties = [...displayedProperties].sort((a, b) => {
-    const valA = a[sortKey];
-    const valB = b[sortKey];
-    if (!valA || !valB) return 0;
-    if (typeof valA === 'string') return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-    if (!isNaN(Date.parse(valA))) return sortOrder === 'asc' ? new Date(valA) - new Date(valB) : new Date(valB) - new Date(valA);
-    if (typeof valA === 'number') return sortOrder === 'asc' ? valA - valB : valB - valA;
-    return 0;
-  });
+  const sortedProperties = aiSearchActive
+    ? aiResults || []
+    : sharedProperties;
 
+  const resultCount = aiResults?.length || 0;
+  const hasResults = aiSearchActive && resultCount > 0;
 
-
-const debouncedSearch = useCallback(
-  debounce(async (query) => {
-    if (!query.trim()) {
-      setAiSearchActive(false);
-      setAiResults(null);
-      return;
-    }
-    try {
-      const res = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/public/property/search`, {
-        address: query,
-      });
-      setAiSearchActive(true);
-      setAiResults(res.data?.results || []);
-      setCurrentPage(1);
-    } catch (error) {
-      console.error('Community search failed:', error);
-      toast.error('Search failed. Please try again.');
-    }
-  }, 400),
-  []
-);
-
+  const start = hasResults ? (currentPage - 1) * limit + 1 : 0;
+  const end = hasResults ? start + resultCount - 1 : 0;
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-3">
-        <h2 className="text-2xl md:text-3xl font-bold">🏘️ Community Board - Shared Properties</h2>
-
-        <div className="flex items-center gap-2 md:gap-3">
-          <label htmlFor="postedWithinDays" className="text-sm text-gray-600 whitespace-nowrap">
-            Posted within:
-          </label>
-          <input
-            type="range"
-            id="postedWithinDays"
-            min="1"
-            max="90"
-            step="1"
-            value={postedWithinDays}
-            onChange={(e) => {
-              setPostedWithinDays(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="w-[120px] h-2 accent-blue-600"
-          />
-          <span className="text-sm text-gray-700">{postedWithinDays} days</span>
-        </div>
-      </div>
-
+    <div className="container mx-auto p-4 md:p-6 space-y-6">
+      {/* Heading */}
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+        🏘️ Community Board - Shared Properties
+      </h2>
+  
+      {/* Search, Filter, Sort, View Toggle */}
       <PropertyFilterBar
         currentFilter={propertyTypeFilter}
         setCurrentFilter={setPropertyTypeFilter}
@@ -158,7 +138,19 @@ const debouncedSearch = useCallback(
         setSearchQuery={(query) => {
           setSearchQuery(query);
           if (searchMode === 'normal') {
-            debouncedSearch(query);
+            const filters = {
+              address: query,
+              minPrice: minPrice ? Number(minPrice) : undefined,
+              maxPrice: maxPrice ? Number(maxPrice) : undefined,
+              postedWithinDays: Number(postedWithinDays),
+              status: propertyTypeFilter,
+              page: 1,
+              limit,
+              sortKey,
+              sortOrder,
+            };
+            debouncedFetch(filters);
+            setCurrentPage(1);
           }
         }}
         sortKey={sortKey}
@@ -187,7 +179,32 @@ const debouncedSearch = useCallback(
           { value: 'all', label: 'All Shared' },
         ]}
       />
-
+  
+      {/* Filters + Result Summary */}
+      <SharedFilters
+        minPrice={minPrice}
+        maxPrice={maxPrice}
+        setMinPrice={setMinPrice}
+        setMaxPrice={setMaxPrice}
+        postedWithinDays={postedWithinDays}
+        setPostedWithinDays={setPostedWithinDays}
+        currentPage={currentPage}
+        limit={limit}
+        totalCount={totalCount}
+        allCount={allCount}
+        aiSearchActive={aiSearchActive}
+        onReset={() => {
+          setMinPrice('');
+          setMaxPrice('');
+          setPostedWithinDays(10);
+          setSearchQuery('');
+          setAiResults(null);
+          setAiSearchActive(false);
+          setCurrentPage(1);
+        }}
+      />
+  
+      {/* Property Cards or Table */}
       <PropertyViewSwitcher
         properties={sortedProperties}
         loading={loading}
@@ -212,9 +229,9 @@ const debouncedSearch = useCallback(
         deleteSavedProperty={() => {}}
         isPublic={true}
       />
-
-      {/* Pagination UI */}
-      {!aiSearchActive && totalPages > 1 && (
+  
+      {/* Pagination */}
+      {totalPages > 1 && (
         <div className="mt-6 flex justify-center">
           <Pagination
             count={totalPages}
@@ -225,7 +242,8 @@ const debouncedSearch = useCallback(
           />
         </div>
       )}
-
+  
+      {/* Email Modal */}
       {emailModalOpen && selectedProperty && messageRecipient && (
         <EmailModal
           property={selectedProperty}
@@ -240,6 +258,8 @@ const debouncedSearch = useCallback(
       )}
     </div>
   );
+  
+
 };
 
 export default CommunityBoard;

@@ -9,6 +9,7 @@ import { PlusCircle, UserPlus, Filter, Search, ChevronDown, ChevronUp } from 'lu
 import { toast } from 'react-toastify';
 import PropertyFilterBar from './PropertyFilterBar';
 import LoadingSpinner from './LoadingSpinner';
+import SharedFilters from './SharedFilters';
 
 
 
@@ -41,8 +42,21 @@ const PropertySourcingPage = () => {
     const [loadingSaved, setLoadingSaved] = useState(true);
     const [totalPagesCreated, setTotalPagesCreated] = useState(1);
     const [totalPagesSaved, setTotalPagesSaved] = useState(1);
+    const [minPrice, setMinPrice] = useState('');
+    const [maxPrice, setMaxPrice] = useState('');
+    const [postedWithinDays, setPostedWithinDays] = useState(10);
+
 
     const propertiesPerPage = 12;
+
+    const resetFilters = () => {
+        setMinPrice('');
+        setMaxPrice('');
+        setPostedWithinDays(10);
+        setSearchQuery('');
+        setCurrentPage(1);
+    };
+
 
 
 
@@ -208,11 +222,29 @@ const PropertySourcingPage = () => {
             });
         }
 
-        return filtered.filter(property => {
+        // NEW: filter by address or agent name
+        filtered = filtered.filter(property => {
             const address = property.address?.toLowerCase() || '';
             const agent = property.agentId?.name?.toLowerCase() || '';
             return address.includes(searchQuery) || agent.includes(searchQuery);
-        }).sort((a, b) => {
+        });
+
+        // ✅ NEW: price filtering
+        filtered = filtered.filter((property) => {
+            const price = property.askingPriceMin || 0;
+            return (!minPrice || price >= Number(minPrice)) &&
+                (!maxPrice || price <= Number(maxPrice));
+        });
+
+        // ✅ NEW: postedWithin filtering (days)
+        filtered = filtered.filter((property) => {
+            const created = new Date(property.createdAt);
+            const now = new Date();
+            const daysAgo = (now - created) / (1000 * 60 * 60 * 24);
+            return daysAgo <= postedWithinDays;
+        });
+
+        return filtered.sort((a, b) => {
             const valA = a[sortKey] || '';
             const valB = b[sortKey] || '';
             if (typeof valA === 'string') return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
@@ -221,6 +253,7 @@ const PropertySourcingPage = () => {
             return 0;
         });
     };
+
 
     const paginatedProperties = getFilteredProperties().slice(
         (currentPage - 1) * propertiesPerPage,
@@ -383,6 +416,22 @@ const PropertySourcingPage = () => {
                     { value: 'deleted', label: 'Deleted Only' },
                 ]}
             />
+
+            <SharedFilters
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                postedWithinDays={postedWithinDays}
+                setMinPrice={setMinPrice}
+                setMaxPrice={setMaxPrice}
+                setPostedWithinDays={setPostedWithinDays}
+                onReset={resetFilters}
+                currentPage={currentPage}
+                limit={propertiesPerPage}
+                aiSearchActive={aiSearchActive}
+                totalCount={getFilteredProperties().length} // filtered based on all filters
+                allCount={createdProperties.length + savedProperties.length}
+            />
+
 
 
 

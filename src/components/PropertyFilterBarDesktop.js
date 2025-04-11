@@ -125,26 +125,26 @@ const PropertyFilterBarDesktop = ({
     setCurrentPage?.(1);
   };
 
-  const debouncedSearch = useCallback(
-    debounce(async (query) => {
-      if (!query.trim()) {
-        setLiveResults([]);
-        return;
-      }
-      try {
-        const res = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/public/property/search`, {
-          address: query,
-        });
-        setLiveResults(res.data?.results || []);
-        setAiSearchActive(true);
-        onAiSearch(res.data?.results || []);
-        setCurrentPage?.(1);
-      } catch (error) {
-        console.error('Live search failed:', error);
-      }
-    }, 400),
-    []
-  );
+  // const debouncedSearch = useCallback(
+  //   debounce(async (query) => {
+  //     if (!query.trim()) {
+  //       setLiveResults([]);
+  //       return;
+  //     }
+  //     try {
+  //       const res = await axiosInstance.post(`${process.env.REACT_APP_API_BASE_URL}/public/property/search`, {
+  //         address: query,
+  //       });
+  //       setLiveResults(res.data?.results || []);
+  //       setAiSearchActive(true);
+  //       onAiSearch(res.data?.results || []);
+  //       setCurrentPage?.(1);
+  //     } catch (error) {
+  //       console.error('Live search failed:', error);
+  //     }
+  //   }, 400),
+  //   []
+  // );
 
 
   return (
@@ -182,9 +182,9 @@ const PropertyFilterBarDesktop = ({
             onChange={(e) => {
               const query = e.target.value;
               setSearchQuery(query);
-              if (searchMode === 'normal') {
-                debouncedSearch(query);
-              }
+              // if (searchMode === 'normal') {
+              //   debouncedSearch(query);
+              // }
             }}
 
             onKeyDown={(e) => {
@@ -276,7 +276,7 @@ const PropertyFilterBarDesktop = ({
           </div>
         )}
 
-        {searchFocused && !searchQuery && !aiSearchActive && searchMode === 'normal' && (
+        {searchFocused && !searchQuery && searchMode === 'normal' && (
           <div className="text-xs text-[#6B7280] mt-2">
             <p className="mb-1">Try searching:</p>
             <ul className="list-disc pl-5 space-y-1 text-xs text-gray-600">
