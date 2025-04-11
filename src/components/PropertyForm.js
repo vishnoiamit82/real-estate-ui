@@ -7,6 +7,9 @@ import PropertyFields from "./PropertyFields";
 import DescriptionProcessor from './DescriptionProcessor';
 import initialPropertyFormData from '../utils/initialPropertyFormData';
 
+import { PROPERTY_SECTION_CONFIGS } from '../config/propertySectionConfigs'; // ✅ adjust path if needed
+
+
 
 
 const PropertyForm = () => {
@@ -26,8 +29,11 @@ const PropertyForm = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [showForm, setShowForm] = useState(false);
-    const visibleSections = ["Basic Information", "Financial Information", "Property Details"];
+    // const visibleSections = ["Basic Information", "Financial Information", "Property Details"];
     const [processedDescription, setProcessedDescription] = useState('');
+
+    const [visibleSections, setVisibleSections] = useState(PROPERTY_SECTION_CONFIGS.full.visibleSections);
+
 
 
 

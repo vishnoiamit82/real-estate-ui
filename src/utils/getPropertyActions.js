@@ -145,23 +145,27 @@ export const getPropertyActions = ({
 
   // === COMMUNITY PAGE ONLY (Not saved or created) ===
   // if (!source && property.isCommunityShared && property.sharedBy?._id !== currentUser?.id ) {
-  if (property.isCommunityShared && source != 'created') {
-    // actions.push({
-    //   label: 'Save to My List',
-    //   icon: Star,
-    //   type: 'primary',
-    //   onClick: () => handleSaveToMyList(property._id),
-    // });
-
-    if (property.shareToken) {
-      actions.push({
-        label: 'View',
-        icon: Eye,
-        type: 'primary',
-        onClick: () => window.open(`/shared/${property.shareToken}`, '_blank'),
-      });
-    }
-
+    if (property.isCommunityShared && source !== 'created') {
+      const isOwner = currentUser && property.createdBy === currentUser._id;
+    
+      if (isOwner) {
+        actions.push({
+          label: 'View/Edit',
+          icon: Edit2,
+          type: 'primary',
+          onClick: () => navigate(`/edit-property/${property._id}`),
+        });
+      } else if (property.shareToken) {
+        actions.push({
+          label: 'View',
+          icon: Eye,
+          type: 'primary',
+          onClick: () => window.open(`/shared/${property.shareToken}`, '_blank'),
+        });
+      }
+    
+      // Optionally: other community-only actions (e.g. message poster) can go here
+    
 
     // actions.push({
     //   label: 'Message Poster',

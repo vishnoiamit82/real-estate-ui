@@ -46,6 +46,11 @@ const PropertySourcingPage = () => {
     const [maxPrice, setMaxPrice] = useState('');
     const [postedWithinDays, setPostedWithinDays] = useState(10);
 
+    const [sharedProperties, setSharedProperties] = useState([]);
+    const [loadingShared, setLoadingShared] = useState(false);
+    const [totalPagesShared, setTotalPagesShared] = useState(1);
+
+
 
     const propertiesPerPage = 12;
 
@@ -61,30 +66,17 @@ const PropertySourcingPage = () => {
 
 
 
-
-    useEffect(() => {
-        fetchCreatedProperties();
-        fetchSavedProperties();
-        fetchEmailTemplates();
-        setCurrentPage(1);
-    }, [currentFilter]);
-
     useEffect(() => {
         if (activeTab === 'created') {
             fetchCreatedProperties();
-        } else {
+        } else if (activeTab === 'saved') {
             fetchSavedProperties();
+        } else if (activeTab === 'shared') {
+            fetchSharedCreatedProperties();
         }
-        setCurrentPage(1);
-    }, [currentFilter]);
+        // No need to call setCurrentPage(1) here unless you're deliberately resetting the page
+    }, [activeTab, currentPage, currentFilter]);
 
-    useEffect(() => {
-        if (activeTab === 'created') {
-            fetchCreatedProperties();
-        } else {
-            fetchSavedProperties();
-        }
-    }, [currentPage, activeTab]);
 
     const getStatusQueryFromFilter = (filter) => {
         switch (filter) {
@@ -103,6 +95,37 @@ const PropertySourcingPage = () => {
         }
     };
 
+
+    useEffect(() => {
+        setCurrentPage(1); // Reset page when filter or tab changes
+    }, [currentFilter, activeTab]);
+
+
+    const fetchSharedCreatedProperties = async () => {
+        setLoadingShared(true);
+        try {
+            const response = await axiosInstance.get(`${process.env.REACT_APP_API_BASE_URL}/properties`, {
+                params: {
+                    mine: true,
+                    isCommunityShared: true,
+                    limit: propertiesPerPage,
+                    page: currentPage,
+                },
+            });
+
+            const result = response.data;
+            setSharedProperties(Array.isArray(result) ? result : result.data.map(p => ({ ...p, source: 'shared' })));
+            if (!Array.isArray(result)) {
+                setTotalPagesShared(result.totalPages || 1);
+            }
+        } catch (error) {
+            console.error('Error fetching shared properties:', error);
+        } finally {
+            setLoadingShared(false);
+        }
+    };
+
+
     const fetchCreatedProperties = async () => {
         setLoadingCreated(true);
         try {
@@ -112,6 +135,7 @@ const PropertySourcingPage = () => {
             const queryParams = new URLSearchParams();
             queryParams.append('mine', 'true');
             queryParams.append('is_deleted', isDeleted);
+            queryParams.append('isCommunityShared', 'false'); // ✅ Exclude shared
             queryParams.append('limit', propertiesPerPage);
             queryParams.append('page', currentPage);
             if (statusQuery) queryParams.append('status', statusQuery);
@@ -121,7 +145,9 @@ const PropertySourcingPage = () => {
             );
 
             const result = response.data;
-            setCreatedProperties(Array.isArray(result) ? result : result.data.map((p) => ({ ...p, source: 'created' })));
+            setCreatedProperties(result.data.map((p) => ({ ...p, source: 'created' })));
+            setTotalPagesCreated(result.totalPages || 1);
+
             if (!Array.isArray(result)) {
                 setTotalPagesCreated(result.totalPages || 1);
             }
@@ -131,6 +157,7 @@ const PropertySourcingPage = () => {
             setLoadingCreated(false);
         }
     };
+
 
 
 
@@ -255,28 +282,39 @@ const PropertySourcingPage = () => {
     };
 
 
-    const paginatedProperties = getFilteredProperties().slice(
-        (currentPage - 1) * propertiesPerPage,
-        currentPage * propertiesPerPage
-    );
-
-    const totalPages = Math.ceil(getFilteredProperties().length / propertiesPerPage);
-
     const handleUpdateDecisionStatus = async (property, status) => {
         try {
             if (property.source === 'saved') {
-                await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/saved-properties/${property.savedId}/decision`, { decisionStatus: status });
-                fetchSavedProperties();
+                await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/saved-properties/${property.savedId}/decision`, {
+                    decisionStatus: status,
+                });
+
+                // ⬇️ Update just this property in savedProperties
+                setSavedProperties((prev) =>
+                    prev.map((p) =>
+                        p.savedId === property.savedId ? { ...p, decisionStatus: status } : p
+                    )
+                );
             } else {
-                await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/properties/${property._id}/decision`, { decisionStatus: status });
-                fetchCreatedProperties();
+                await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/properties/${property._id}/decision`, {
+                    decisionStatus: status,
+                });
+
+                // ⬇️ Update just this property in createdProperties
+                setCreatedProperties((prev) =>
+                    prev.map((p) =>
+                        p._id === property._id ? { ...p, decisionStatus: status } : p
+                    )
+                );
             }
+
             setMessage(`Property marked as ${status} successfully.`);
         } catch (error) {
             console.error('Failed to update decision status:', error);
             setMessage('Failed to update decision status.');
         }
     };
+
 
     const deleteProperty = async (id) => {
         try {
@@ -319,9 +357,15 @@ const PropertySourcingPage = () => {
 
     const handleShareToCommunity = async (propertyId) => {
         try {
-            await axiosInstance.patch(`${process.env.REACT_APP_API_BASE_URL}/properties/${propertyId}/share-to-community`);
+            await axiosInstance.patch(`/properties/${propertyId}/share-to-community`);
+
+            setCreatedProperties((prev) =>
+                prev.map((p) =>
+                    p._id === propertyId ? { ...p, isCommunityShared: true } : p
+                )
+            );
             toast.success('✅ Property shared to community!');
-            fetchCreatedProperties();
+
         } catch (error) {
             console.error('Error sharing to community:', error);
             toast.error('❌ Failed to share property to community.');
@@ -354,9 +398,17 @@ const PropertySourcingPage = () => {
         }
     }, [selectedProperty]);
 
-    const visibleProperties = aiSearchActive && aiResults
-        ? aiResults
-        : getFilteredProperties().filter((prop) => prop.source === activeTab);
+    const visibleProperties = (() => {
+        if (aiSearchActive && aiResults) return aiResults;
+
+        if (activeTab === 'created') return createdProperties;
+        if (activeTab === 'saved') return savedProperties;
+        if (activeTab === 'shared') return sharedProperties;
+
+        return [];
+    })();
+
+
 
 
     return (
@@ -428,7 +480,14 @@ const PropertySourcingPage = () => {
                 currentPage={currentPage}
                 limit={propertiesPerPage}
                 aiSearchActive={aiSearchActive}
-                totalCount={getFilteredProperties().length} // filtered based on all filters
+                totalCount={
+                    activeTab === 'created'
+                        ? createdProperties.length
+                        : activeTab === 'saved'
+                            ? savedProperties.length
+                            : sharedProperties.length
+                }
+                // filtered based on all filters
                 allCount={createdProperties.length + savedProperties.length}
             />
 
@@ -439,91 +498,125 @@ const PropertySourcingPage = () => {
             {/* Property Card Tabs */}
             <div className="mt-6">
                 {/* Tab Buttons */}
-                <div className="flex space-x-4 border-b border-gray-300 mb-4">
+                <div className="flex flex-wrap gap-2 md:gap-4 border-b border-gray-300 mb-6">
+                    {/* My Internal Properties Tab */}
                     <button
                         onClick={() => setActiveTab('created')}
-                        className={`px-4 py-2 font-medium border-b-2 transition ${activeTab === 'created'
-                            ? 'text-blue-600 border-blue-600'
-                            : 'text-gray-500 border-transparent hover:text-blue-500'
+                        className={`px-4 py-2 rounded-t-md transition-all font-medium text-sm md:text-base ${activeTab === 'created'
+                                ? 'bg-white border-x border-t border-gray-300 text-blue-600'
+                                : 'text-gray-500 hover:text-blue-500'
                             }`}
                     >
-                        <span title="Only visible to you unless you share it with community.">
-                            🔒 My Created Properties (Private)
-                        </span>
+                        🔒 My Internal Properties
+                        <div className="text-xs text-gray-400 font-normal hidden sm:block">Only visible to you</div>
                     </button>
+
+                    {/* Shared With Community Tab */}
                     <button
-                        onClick={() => setActiveTab('saved')}
-                        className={`px-4 py-2 font-medium border-b-2 transition ${activeTab === 'saved'
-                            ? 'text-blue-600 border-blue-600'
-                            : 'text-gray-500 border-transparent hover:text-blue-500'
+                        onClick={() => setActiveTab('shared')}
+                        className={`px-4 py-2 rounded-t-md transition-all font-medium text-sm md:text-base ${activeTab === 'shared'
+                                ? 'bg-white border-x border-t border-gray-300 text-blue-600'
+                                : 'text-gray-500 hover:text-blue-500'
                             }`}
                     >
-                        🌍 Saved from Community
+                        📤 Shared With Community
+                        <div className="text-xs text-gray-400 font-normal hidden sm:block">Publicly visible</div>
                     </button>
                 </div>
 
-                {/* Tab Content */}
-                {activeTab === 'created' ? (
-                    loadingCreated ? (
-                        <LoadingSpinner message="Loading created properties..." />
-                    )
-                        : visibleProperties.length > 0
-                            ? (
-                                <PropertyCardList
-                                    properties={visibleProperties}
-                                    navigate={navigate}
-                                    updateDecisionStatus={(property, status) => handleUpdateDecisionStatus(property, status)}
-                                    setSelectedPropertyForEmail={setSelectedPropertyForEmail}
-                                    setSelectedAgent={setSelectedAgent}
-                                    setSelectedPropertyForNotes={setSelectedPropertyForNotes}
-                                    handleShareProperty={handleShareProperty}
-                                    handleShareToCommunity={handleShareToCommunity}
-                                    handleUnshareFromCommunity={handleUnshareFromCommunity}
-                                    deleteProperty={deleteProperty}
-                                    restoreProperty={restoreProperty}
-                                    deleteSavedProperty={deleteSavedProperty}
-                                    currentUser={currentUser}
-                                />
-                            ) : (
-                                <div className="text-gray-600 text-sm leading-relaxed border border-dashed border-gray-300 p-5 rounded-md bg-gray-50 shadow-sm">
-                                    <p className="font-semibold text-gray-700 text-base mb-2">You haven't created any properties yet.</p>
-                                    <p>🚀 Our goal is to help you manage <strong>end-to-end property sourcing</strong> — from discovery to sharing, shortlisting, email conversations, due diligence and beyond.</p>
-                                    <p className="mt-2">You can easily <strong>copy-paste property details</strong> from SMS, WhatsApp, Facebook messages, Domain, RealEstate.com.au, or any other source — and turn them into structured listings in seconds.</p>
-                                    <p className="mt-2">✉️ Once added, you can share properties with the community, manage notes, track decision status, or even send emails to agents <strong>directly from the app</strong>.</p>
-                                    <button
-                                        onClick={() => navigate('/add-property')}
-                                        className="mt-4 inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition"
-                                    >
-                                        ➕ Add Your First Property
-                                    </button>
-                                    <p className="mt-3 text-sm text-gray-500">
-                                        Need inspiration? <span onClick={() => navigate('/public')} className="text-blue-600 hover:underline cursor-pointer">Explore what others are sharing →</span>
-                                    </p>
-                                </div>
-                            )
-                ) : loadingSaved ? (
-                    <p className="text-sm text-gray-500">Loading saved properties...</p>
-                ) : visibleProperties.length > 0
-                    ? (
-                        <PropertyCardList
-                            properties={visibleProperties}
-                            navigate={navigate}
-                            updateDecisionStatus={(property, status) => handleUpdateDecisionStatus(property, status)}
-                            setSelectedPropertyForEmail={setSelectedPropertyForEmail}
-                            setSelectedAgent={setSelectedAgent}
-                            setSelectedPropertyForNotes={setSelectedPropertyForNotes}
-                            handleShareProperty={handleShareProperty}
-                            handleShareToCommunity={handleShareToCommunity}
-                            handleUnshareFromCommunity={handleUnshareFromCommunity}
-                            deleteProperty={deleteProperty}
-                            restoreProperty={restoreProperty}
-                            deleteSavedProperty={deleteSavedProperty}
-                            handlePursueCommunityProperty={handlePursueCommunityProperty}
-                            currentUser={currentUser}
-                        />
-                    ) : (
-                        <p className="text-gray-500 text-sm">No saved properties from community yet.</p>
+
+                <div className="mt-6">
+                    {/* Created Tab */}
+                    {activeTab === 'created' && (
+                        loadingCreated ? (
+                            <LoadingSpinner message="Loading created properties..." />
+                        ) : visibleProperties.length > 0 ? (
+                            <PropertyCardList
+                                properties={visibleProperties}
+                                navigate={navigate}
+                                updateDecisionStatus={handleUpdateDecisionStatus}
+                                setSelectedPropertyForEmail={setSelectedPropertyForEmail}
+                                setSelectedAgent={setSelectedAgent}
+                                setSelectedPropertyForNotes={setSelectedPropertyForNotes}
+                                handleShareProperty={handleShareProperty}
+                                handleShareToCommunity={handleShareToCommunity}
+                                handleUnshareFromCommunity={handleUnshareFromCommunity}
+                                deleteProperty={deleteProperty}
+                                restoreProperty={restoreProperty}
+                                deleteSavedProperty={deleteSavedProperty}
+                                currentUser={currentUser}
+                            />
+                        ) : (
+                            <div className="text-gray-600 text-sm leading-relaxed border border-dashed border-gray-300 p-5 rounded-md bg-gray-50 shadow-sm">
+                                <p className="font-semibold text-gray-700 text-base mb-2">You haven't created any properties yet.</p>
+                                <p>🚀 Our goal is to help you manage <strong>end-to-end property sourcing</strong> — from discovery to sharing, shortlisting, email conversations, due diligence and beyond.</p>
+                                <p className="mt-2">You can easily <strong>copy-paste property details</strong> from SMS, WhatsApp, Facebook messages, Domain, RealEstate.com.au, or any other source — and turn them into structured listings in seconds.</p>
+                                <p className="mt-2">✉️ Once added, you can share properties with the community, manage notes, track decision status, or even send emails to agents <strong>directly from the app</strong>.</p>
+                                <button
+                                    onClick={() => navigate('/add-property')}
+                                    className="mt-4 inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition"
+                                >
+                                    ➕ Add Your First Property
+                                </button>
+                                <p className="mt-3 text-sm text-gray-500">
+                                    Need inspiration? <span onClick={() => navigate('/public')} className="text-blue-600 hover:underline cursor-pointer">Explore what others are sharing →</span>
+                                </p>
+                            </div>
+                        )
                     )}
+
+                    {/* Shared Tab */}
+                    {activeTab === 'shared' && (
+                        loadingShared ? (
+                            <LoadingSpinner message="Loading shared properties..." />
+                        ) : sharedProperties.length > 0 ? (
+                            <PropertyCardList
+                                properties={sharedProperties}
+                                navigate={navigate}
+                                updateDecisionStatus={handleUpdateDecisionStatus}
+                                setSelectedPropertyForEmail={setSelectedPropertyForEmail}
+                                setSelectedAgent={setSelectedAgent}
+                                setSelectedPropertyForNotes={setSelectedPropertyForNotes}
+                                handleShareProperty={handleShareProperty}
+                                handleShareToCommunity={handleShareToCommunity}
+                                handleUnshareFromCommunity={handleUnshareFromCommunity}
+                                deleteProperty={deleteProperty}
+                                restoreProperty={restoreProperty}
+                                deleteSavedProperty={deleteSavedProperty}
+                                currentUser={currentUser}
+                            />
+                        ) : (
+                            <p className="text-gray-500 text-sm">No properties shared with the community yet.</p>
+                        )
+                    )}
+
+                    {/* Saved Tab */}
+                    {activeTab === 'saved' && (
+                        loadingSaved ? (
+                            <LoadingSpinner message="Loading saved properties..." />
+                        ) : visibleProperties.length > 0 ? (
+                            <PropertyCardList
+                                properties={visibleProperties}
+                                navigate={navigate}
+                                updateDecisionStatus={handleUpdateDecisionStatus}
+                                setSelectedPropertyForEmail={setSelectedPropertyForEmail}
+                                setSelectedAgent={setSelectedAgent}
+                                setSelectedPropertyForNotes={setSelectedPropertyForNotes}
+                                handleShareProperty={handleShareProperty}
+                                handleShareToCommunity={handleShareToCommunity}
+                                handleUnshareFromCommunity={handleUnshareFromCommunity}
+                                deleteProperty={deleteProperty}
+                                restoreProperty={restoreProperty}
+                                deleteSavedProperty={deleteSavedProperty}
+                                handlePursueCommunityProperty={handlePursueCommunityProperty}
+                                currentUser={currentUser}
+                            />
+                        ) : (
+                            <p className="text-gray-500 text-sm">No saved properties from community yet.</p>
+                        )
+                    )}
+                </div>
+
             </div>
 
 
@@ -546,16 +639,20 @@ const PropertySourcingPage = () => {
                 />
             )}
 
-            {/* Pagination */}
-            {!aiSearchActive && (
-                <Pagination
-                    count={activeTab === 'created' ? totalPagesCreated : totalPagesSaved}
-                    page={currentPage}
-                    onChange={(e, value) => setCurrentPage(value)}
-                    variant="outlined"
-                    shape="rounded"
-                />
-            )}
+            <Pagination
+                count={
+                    activeTab === 'created'
+                        ? totalPagesCreated
+                        : activeTab === 'saved'
+                            ? totalPagesSaved
+                            : totalPagesShared
+                }
+                page={currentPage}
+                onChange={(e, value) => setCurrentPage(value)}
+                variant="outlined"
+                shape="rounded"
+            />
+
 
 
 

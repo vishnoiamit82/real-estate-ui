@@ -34,7 +34,7 @@ import {
       label: 'Land',
       icon: Ruler,
       showIn: ['card', 'table'],
-      getValue: (p) => p.landSize ? `${p.landSize} m²` : '–',
+      getValue: (p) => p.landSize ? `${p.landSize}` : '–',
     },
     {
       key: 'askingPrice',
